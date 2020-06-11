@@ -11,12 +11,19 @@ import (
 	"strconv"
 )
 
-func loadWallet(path string, legacy bool) wallet.Wallet {
+func loadWallet(path string, legacy bool, password string) (w []wallet.Wallet) {
 	if legacy {
-		return wallet.Legacy{Path: path}.LuckyLoad()
+		w = []wallet.Wallet{wallet.Legacy{Path: path}.LuckyLoad()}
 	} else {
 		panic(fu.Panic(fmt.Errorf("unsupported wallet type")))
 	}
+	if password != "" {
+		ok := wallet.Unlock(password, w...)
+		if !ok {
+			panic(fu.Panic(fmt.Errorf("there is nothing to unlock, wrong password(?)")))
+		}
+	}
+	return
 }
 
 func main() {
@@ -41,11 +48,8 @@ func main() {
 			Short: "get account info",
 			Args:  cobra.RangeArgs(1, 1),
 			Run: func(cmd *cobra.Command, args []string) {
-				w := loadWallet(*walletFile, *legacy)
-				if *password != "" {
-					w.LuckyUnlock(*password)
-				}
-				acc, exists := w.Lookup(args[0])
+				w := loadWallet(*walletFile, *legacy, *password)
+				acc, exists := wallet.Lookup(args[0], w...)
 				if !exists {
 					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])))
 				}
@@ -63,17 +67,21 @@ func main() {
 			Short: "do transfer",
 			Args:  cobra.RangeArgs(3, 4),
 			Run: func(cmd *cobra.Command, args []string) {
-				w := loadWallet(*walletFile, *legacy)
-				if *password != "" {
-					w.LuckyUnlock(*password)
-				}
-				from, exists := w.Lookup(args[0])
+				w := loadWallet(*walletFile, *legacy, *password)
+				from, exists := wallet.Lookup(args[0], w...)
 				if !exists {
 					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])))
 				}
-				to, exists := w.Lookup(args[1])
+				var to types.Address
+				toa, exists := wallet.Lookup(args[1], w...)
 				if !exists {
-					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[1])))
+					x, err := types.StringToAddress(args[1])
+					if err != nil {
+						panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[1])))
+					}
+					to = x
+				} else {
+					to = toa.Address
 				}
 				c := mesh.Client{Endpoint: *endpoint}.New()
 				nfo := c.LuckyAccountInfo(from.Address)
@@ -94,7 +102,7 @@ func main() {
 				fmt.Printf("From:    %v\nBalance: %d\nTo:      %v\nAmount:  %d\nFee:     %v\n",
 					from.Address.Hex(),
 					nfo.Balance,
-					to.Address.Hex(),
+					to.Hex(),
 					amount,
 					fee)
 				ok := *yes
@@ -105,7 +113,7 @@ func main() {
 					fmt.Println("cancelled")
 					return
 				}
-				txid := c.LuckyTransfer(uint64(amount), from.Address, nfo.Nonce, from.Private, to.Address, uint64(fee), mesh.DefaultGasLimit)
+				txid := c.LuckyTransfer(uint64(amount), from.Address, nfo.Nonce, from.Private, to, uint64(fee), mesh.DefaultGasLimit)
 				fmt.Println("Succeeded with TxID:", txid.String())
 			},
 		},
@@ -114,11 +122,8 @@ func main() {
 			Short: "list transactions",
 			Args:  cobra.RangeArgs(1, 2),
 			Run: func(cmd *cobra.Command, args []string) {
-				w := loadWallet(*walletFile, *legacy)
-				if *password != "" {
-					w.LuckyUnlock(*password)
-				}
-				acc, exists := w.Lookup(args[0])
+				w := loadWallet(*walletFile, *legacy, *password)
+				acc, exists := wallet.Lookup(args[0], w...)
 				if !exists {
 					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])))
 				}

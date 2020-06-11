@@ -30,6 +30,13 @@ func (wal Wallet) LuckyUnlock(key string) {
 	}
 }
 
+func Unlock(key string, w ...Wallet) (ok bool) {
+	for _, wal := range w {
+		ok = (wal.Unlock(key) == nil) || ok
+	}
+	return
+}
+
 func Lookup(alias string, w ...Wallet) (acc Account, exists bool) {
 	for _, wal := range w {
 		if acc, exists = wal.Lookup(alias); exists {
