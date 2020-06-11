@@ -138,18 +138,12 @@ func main() {
 					tx := c.LuckyTransaction(x)
 					fmt.Printf("%3d:\t%-8s %v\n\t%-8s %v\n\t%-8s %v\n\t%-8s %d\n\t%-8s %d\n\t%-8s %s\n",
 						i,
-						"Id:",
-						tx.Id.String(),
-						"From"+mark(tx.From)+":",
-						tx.From.String(),
-						"To"+mark(tx.To)+":",
-						tx.To.String(),
-						"Amount:",
-						tx.Amount,
-						"Layer:",
-						tx.LayerId,
-						"Status:",
-						tx.Status)
+						"Id:", tx.Id.String(),
+						"From"+mark(tx.From)+":", tx.From.String(),
+						"To"+mark(tx.To)+":", tx.To.String(),
+						"Amount:", tx.Amount,
+						"Layer:", tx.LayerId,
+						"Status:", tx.Status)
 				}
 			},
 		},
