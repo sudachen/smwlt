@@ -28,9 +28,13 @@ func loadWallet(path string, legacy bool, password string) (w []wallet.Wallet) {
 
 func main() {
 
+	var trace *bool
+
 	defer func() {
-		if e := recover(); e != nil {
-			fmt.Println(fu.PanicMessage(e))
+		if trace == nil || !*trace {
+			if e := recover(); e != nil {
+				fmt.Println(fu.PanicMessage(e))
+			}
 		}
 	}()
 
@@ -41,6 +45,7 @@ func main() {
 	password := rootCmd.Flags().StringP("password", "p", "", "wallet unlock password")
 	endpoint := rootCmd.Flags().StringP("endpoint", "e", mesh.DefaultEndpoint, "host:port to connect mesh node")
 	yes := rootCmd.Flags().BoolP("yes", "y", false, "auto confirm")
+	trace = rootCmd.Flags().BoolP("trace", "x", false, "backtrace on panic")
 
 	rootCmd.AddCommand(
 		&cobra.Command{
