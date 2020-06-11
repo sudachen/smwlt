@@ -47,7 +47,7 @@ func main() {
 				}
 				acc, exists := w.Lookup(args[0])
 				if !exists {
-					fu.Panic(fmt.Errorf("account '%v' does not exist", args[0]))
+					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])))
 				}
 				c := mesh.Client{Endpoint: *endpoint}.New()
 				nfo := c.LuckyAccountInfo(acc.Address)
@@ -69,11 +69,11 @@ func main() {
 				}
 				from, exists := w.Lookup(args[0])
 				if !exists {
-					fu.Panic(fmt.Errorf("account '%v' does not exist", args[0]))
+					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])))
 				}
 				to, exists := w.Lookup(args[1])
 				if !exists {
-					fu.Panic(fmt.Errorf("account '%v' does not exist", args[1]))
+					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[1])))
 				}
 				c := mesh.Client{Endpoint: *endpoint}.New()
 				nfo := c.LuckyAccountInfo(from.Address)
@@ -120,7 +120,7 @@ func main() {
 				}
 				acc, exists := w.Lookup(args[0])
 				if !exists {
-					fu.Panic(fmt.Errorf("account '%v' does not exist", args[0]))
+					panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])))
 				}
 				c := mesh.Client{Endpoint: *endpoint}.New()
 				layer := uint64(0)
