@@ -19,6 +19,16 @@ func Panic(err error, skip ...int) interface{} {
 	return xpanic{err}
 }
 
+func PanicMessage(e interface{}) string {
+	if p, ok := e.(xpanic); ok {
+		if err := p.Unwrap(); err != nil {
+			return err.Error()
+		}
+		return p.Error()
+	}
+	return fmt.Sprint(e)
+}
+
 func (x xpanic) stringify(indepth bool) string {
 	s, e := stringifyError(x.err)
 	ns := []string{s}

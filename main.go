@@ -21,6 +21,12 @@ func loadWallet(path string, legacy bool) wallet.Wallet {
 
 func main() {
 
+	defer func() {
+		if e := recover(); e != nil {
+			fmt.Println(fu.PanicMessage(e))
+		}
+	}()
+
 	rootCmd := &cobra.Command{Use: "smwlt", TraverseChildren: true}
 
 	walletFile := rootCmd.Flags().StringP("wallet", "w", "", "wallet filename")
@@ -105,7 +111,7 @@ func main() {
 		},
 		&cobra.Command{
 			Use:   "txs <account> [startLayer]",
-			Short: "do transfer",
+			Short: "list transactions",
 			Args:  cobra.RangeArgs(1, 2),
 			Run: func(cmd *cobra.Command, args []string) {
 				w := loadWallet(*walletFile, *legacy)
