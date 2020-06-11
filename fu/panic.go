@@ -14,7 +14,7 @@ Panic returns traceable panic object
 */
 func Panic(err error, skip ...int) interface{} {
 	if _, ok := err.(xerrors.Formatter); !ok {
-		err = xerror{err, xerrors.Caller(Opti(1,skip...))}
+		err = xerror{err, xerrors.Caller(Opti(1, skip...))}
 	}
 	return xpanic{err}
 }

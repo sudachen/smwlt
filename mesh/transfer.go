@@ -24,18 +24,24 @@ func (c *ClinetAgent) Transfer(
 
 	b, err := types.InterfaceToBytes(&tx.InnerTransaction)
 	if err != nil {
-		err = fu.Wrap(err,"failed to encode inner transaction")
+		err = fu.Wrap(err, "failed to encode inner transaction")
 		return
 	}
-	copy(tx.Signature[:], ed25519.Sign2(key,b))
+	copy(tx.Signature[:], ed25519.Sign2(key, b))
 	if b, err = types.InterfaceToBytes(&tx); err != nil {
-		err = fu.Wrap(err,"failed to encode whole transaction")
+		err = fu.Wrap(err, "failed to encode whole transaction")
 		return
 	}
 
-	out := struct{Id string `json:"id"`}{}
-	err = c.post("/submittransaction",&struct{Tx []byte `json:"tx"`}{b},&out)
-	if err != nil { return }
+	out := struct {
+		Id string `json:"id"`
+	}{}
+	err = c.post("/submittransaction", &struct {
+		Tx []byte `json:"tx"`
+	}{b}, &out)
+	if err != nil {
+		return
+	}
 	txid = types.TransactionID(types.HexToHash32(out.Id))
 	return
 }
@@ -48,11 +54,7 @@ func (c *ClinetAgent) LuckyTransfer(
 
 	txid, err := c.Transfer(amount, from, nonce, key, to, fee, gasLimit)
 	if err != nil {
-		panic(fu.Panic(err,2))
+		panic(fu.Panic(err, 2))
 	}
 	return txid
 }
-
-
-
-

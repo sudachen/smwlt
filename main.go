@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/Songmu/prompter"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/mesh"
 	"github.com/sudachen/smwlt/wallet"
 	"strconv"
-	"github.com/Songmu/prompter"
 )
 
 func loadWallet(path string, legacy bool) wallet.Wallet {
 	if legacy {
-		return wallet.Legacy{Path:path}.LuckyLoad()
+		return wallet.Legacy{Path: path}.LuckyLoad()
 	} else {
 		panic(fu.Panic(fmt.Errorf("unsupported wallet type")))
 	}
@@ -21,7 +21,7 @@ func loadWallet(path string, legacy bool) wallet.Wallet {
 
 func main() {
 
-	rootCmd := &cobra.Command{Use:"smwlt", TraverseChildren: true}
+	rootCmd := &cobra.Command{Use: "smwlt", TraverseChildren: true}
 
 	walletFile := rootCmd.Flags().StringP("wallet", "w", "", "wallet filename")
 	legacy := rootCmd.Flags().BoolP("legacy", "l", false, "use legacy unencrypted file format")
@@ -33,13 +33,17 @@ func main() {
 		&cobra.Command{
 			Use:   "info <account>",
 			Short: "get account info",
-			Args: cobra.RangeArgs(1,1),
+			Args:  cobra.RangeArgs(1, 1),
 			Run: func(cmd *cobra.Command, args []string) {
-				w := loadWallet(*walletFile,*legacy)
-				if *password != "" { w.LuckyUnlock(*password) }
+				w := loadWallet(*walletFile, *legacy)
+				if *password != "" {
+					w.LuckyUnlock(*password)
+				}
 				acc, exists := w.Lookup(args[0])
-				if !exists { fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])) }
-				c := mesh.Client{Endpoint:*endpoint}.New()
+				if !exists {
+					fu.Panic(fmt.Errorf("account '%v' does not exist", args[0]))
+				}
+				c := mesh.Client{Endpoint: *endpoint}.New()
 				nfo := c.LuckyAccountInfo(acc.Address)
 				fmt.Printf("Address: %v\nCreated: %v\nNonce: %v\nBalance: %v\n",
 					acc.Address.Hex(),
@@ -51,25 +55,31 @@ func main() {
 		&cobra.Command{
 			Use:   "tx <from> <to> <amount> [fee]",
 			Short: "do transfer",
-			Args: cobra.RangeArgs(3,4),
+			Args:  cobra.RangeArgs(3, 4),
 			Run: func(cmd *cobra.Command, args []string) {
-				w := loadWallet(*walletFile,*legacy)
-				if *password != "" { w.LuckyUnlock(*password) }
+				w := loadWallet(*walletFile, *legacy)
+				if *password != "" {
+					w.LuckyUnlock(*password)
+				}
 				from, exists := w.Lookup(args[0])
-				if !exists { fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])) }
+				if !exists {
+					fu.Panic(fmt.Errorf("account '%v' does not exist", args[0]))
+				}
 				to, exists := w.Lookup(args[1])
-				if !exists { fu.Panic(fmt.Errorf("account '%v' does not exist", args[1])) }
-				c := mesh.Client{Endpoint:*endpoint}.New()
+				if !exists {
+					fu.Panic(fmt.Errorf("account '%v' does not exist", args[1]))
+				}
+				c := mesh.Client{Endpoint: *endpoint}.New()
 				nfo := c.LuckyAccountInfo(from.Address)
 				amount, err := strconv.Atoi(args[2])
 				if err != nil {
-					panic(fu.Panic(fmt.Errorf("bad amount '%v'",args[2])))
+					panic(fu.Panic(fmt.Errorf("bad amount '%v'", args[2])))
 				}
 				fee := int(mesh.DefaultFee)
 				if len(args) > 3 {
 					fee, err = strconv.Atoi(args[3])
 					if err != nil {
-						panic(fu.Panic(fmt.Errorf("bad fee '%v'",args[3])))
+						panic(fu.Panic(fmt.Errorf("bad fee '%v'", args[3])))
 					}
 				}
 				if nfo.Balance < uint64(amount+fee) {
@@ -83,14 +93,14 @@ func main() {
 					fee)
 				ok := *yes
 				if !ok {
-					ok = prompter.YN("Confirm transaction",false)
+					ok = prompter.YN("Confirm transaction", false)
 				}
 				if !ok {
 					fmt.Println("cancelled")
 					return
 				}
-				txid := c.LuckyTransfer(uint64(amount),from.Address,nfo.Nonce,from.Private,to.Address,uint64(fee),mesh.DefaultGasLimit)
-				fmt.Println("Succeeded with TxID:",txid.String())
+				txid := c.LuckyTransfer(uint64(amount), from.Address, nfo.Nonce, from.Private, to.Address, uint64(fee), mesh.DefaultGasLimit)
+				fmt.Println("Succeeded with TxID:", txid.String())
 			},
 		},
 		&cobra.Command{
@@ -98,16 +108,20 @@ func main() {
 			Short: "do transfer",
 			Args:  cobra.RangeArgs(1, 2),
 			Run: func(cmd *cobra.Command, args []string) {
-				w := loadWallet(*walletFile,*legacy)
-				if *password != "" { w.LuckyUnlock(*password) }
+				w := loadWallet(*walletFile, *legacy)
+				if *password != "" {
+					w.LuckyUnlock(*password)
+				}
 				acc, exists := w.Lookup(args[0])
-				if !exists { fu.Panic(fmt.Errorf("account '%v' does not exist", args[0])) }
-				c := mesh.Client{Endpoint:*endpoint}.New()
+				if !exists {
+					fu.Panic(fmt.Errorf("account '%v' does not exist", args[0]))
+				}
+				c := mesh.Client{Endpoint: *endpoint}.New()
 				layer := uint64(0)
 				if len(args) > 1 {
 					x, err := strconv.Atoi(args[1])
 					if err != nil {
-						panic(fu.Panic(fmt.Errorf("bad layer '%v'",args[1])))
+						panic(fu.Panic(fmt.Errorf("bad layer '%v'", args[1])))
 					}
 					layer = uint64(x)
 				}
@@ -119,8 +133,8 @@ func main() {
 					return ""
 				}
 
-				txs := c.LuckyTxList(acc.Address,layer)
-				for i,x := range txs {
+				txs := c.LuckyTxList(acc.Address, layer)
+				for i, x := range txs {
 					tx := c.LuckyTransaction(x)
 					fmt.Printf("%3d:\t%-8s %v\n\t%-8s %v\n\t%-8s %v\n\t%-8s %d\n\t%-8s %d\n\t%-8s %s\n",
 						i,
@@ -142,6 +156,6 @@ func main() {
 	)
 
 	if err := rootCmd.Execute(); err != nil {
-		panic(fu.Panic(err,1))
+		panic(fu.Panic(err, 1))
 	}
 }

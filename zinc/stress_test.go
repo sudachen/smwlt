@@ -11,30 +11,30 @@ import (
 )
 
 func Test_Stress1(t *testing.T) {
-	ca := make([]*mesh.ClinetAgent,5)
+	ca := make([]*mesh.ClinetAgent, 5)
 	ca[0] = mesh.Client{}.New()
 	for i := 1; i < 5; i++ {
-		ca[i] = mesh.Client{Endpoint: fmt.Sprintf("localhost:919%d",i)}.New()
+		ca[i] = mesh.Client{Endpoint: fmt.Sprintf("localhost:919%d", i)}.New()
 	}
 	c := ca[0]
 	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
 	a := []wallet.Account{}
-	a = append(a,wallet.LuckyLookup("anton", w))
-	a = append(a,wallet.LuckyLookup("almog", w))
-	a = append(a,wallet.LuckyLookup("gavrad", w))
-	a = append(a,wallet.LuckyLookup("tap", w))
-	a = append(a,wallet.LuckyLookup("yosher", w))
+	a = append(a, wallet.LuckyLookup("anton", w))
+	a = append(a, wallet.LuckyLookup("almog", w))
+	a = append(a, wallet.LuckyLookup("gavrad", w))
+	a = append(a, wallet.LuckyLookup("tap", w))
+	a = append(a, wallet.LuckyLookup("yosher", w))
 
-	nonce := make([]uint64,len(a))
+	nonce := make([]uint64, len(a))
 
-	for i,x := range a {
+	for i, x := range a {
 		c = ca[rand.Int31n(int32(len(ca)))]
 		nfo := c.LuckyAccountInfo(x.Address)
 		nonce[i] = nfo.Nonce
 	}
 
 	var txid types.TransactionID
-	for i :=0; i < 1000; i++ {
+	for i := 0; i < 1000; i++ {
 		for i := 0; i < 1000; i++ {
 			j := rand.Int31n(int32(len(a)))
 			from := a[j]
@@ -52,12 +52,14 @@ func Test_Stress1(t *testing.T) {
 				nonce[j] = c.LuckyAccountInfo(from.Address).Nonce
 			}
 		}
-		time.Sleep(3*time.Second)
+		time.Sleep(3 * time.Second)
 	}
 	for {
 		txnfo := ca[0].LuckyTransaction(txid)
-		if txnfo.Status == mesh.TxConfirmed { break }
-		time.Sleep(10*time.Second)
+		if txnfo.Status == mesh.TxConfirmed {
+			break
+		}
+		time.Sleep(10 * time.Second)
 	}
 
 }
