@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+/*
+Account structure for the wallet interface
+*/
 type Account struct {
 	Name    string
 	Address types.Address
@@ -17,6 +20,9 @@ type Account struct {
 	Wallet  Wallet
 }
 
+/*
+Wallet implementation
+*/
 type WalletImpl interface {
 	Name() string
 	Unlock(key string) error
@@ -24,16 +30,25 @@ type WalletImpl interface {
 	List() []Account
 }
 
+/*
+Wallet decorator
+*/
 type Wallet struct {
 	WalletImpl
 }
 
+/*
+Unlock wallet. It panics if failed to unlock
+*/
 func (wal Wallet) LuckyUnlock(key string) {
 	if err := wal.Unlock(key); err != nil {
 		panic(fu.Panic(err, 2))
 	}
 }
 
+/*
+Unlock wallets
+*/
 func Unlock(key string, w ...Wallet) (ok bool) {
 	for _, wal := range w {
 		ok = (wal.Unlock(key) == nil) || ok
@@ -41,6 +56,9 @@ func Unlock(key string, w ...Wallet) (ok bool) {
 	return
 }
 
+/*
+Lookup for accounts in wallets
+*/
 func Lookup(alias string, w ...Wallet) (acc []Account) {
 	for _, wal := range w {
 		if a, exists := wal.Lookup(alias); exists {
@@ -50,6 +68,9 @@ func Lookup(alias string, w ...Wallet) (acc []Account) {
 	return
 }
 
+/*
+Lookup for an account in wallets. It panics if there are more then one account
+*/
 func LookupOne(alias string, w ...Wallet) (acc Account, exists bool) {
 	accs := Lookup(alias, w...)
 	if len(accs) > 1 {
@@ -69,6 +90,9 @@ func LookupOne(alias string, w ...Wallet) (acc Account, exists bool) {
 	return
 }
 
+/*
+Lookup for an account in walltes. It panics if there is not exactly one account
+*/
 func LuckyLookup(alias string, w ...Wallet) Account {
 	acc, exists := LookupOne(alias, w...)
 	if !exists {

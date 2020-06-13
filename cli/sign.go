@@ -14,7 +14,7 @@ import (
 var cmdHexSign = &cobra.Command{
 	Use:   "signhex <account> <hex-string>",
 	Short: "Sign a hex message with the account private key",
-	Args:  cobra.MinimumNArgs(2),
+	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		w := loadWallet()
 		acc := wallet.LuckyLookup(args[0], w...)
@@ -31,7 +31,7 @@ var cmdHexSign = &cobra.Command{
 var cmdTextSign = &cobra.Command{
 	Use:   "signtext <account> <utf8-string>",
 	Short: "Sign a text message with the account private key",
-	Args:  cobra.MinimumNArgs(2),
+	Args:  cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		w := loadWallet()
 		acc := wallet.LuckyLookup(args[0], w...)

@@ -1,6 +1,7 @@
 package api_v1
 
 import (
+	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
 )
 
@@ -11,15 +12,15 @@ type MiningStatus int
 
 const (
 	MiningUnknown MiningStatus = iota
-	MiningIdel
+	MiningIdle
 	MiningInProgress
 	MiningDone
 )
 
 func (st MiningStatus) String() string {
 	switch st {
-	case MiningIdel:
-		return "Idel"
+	case MiningIdle:
+		return "Idle"
 	case MiningInProgress:
 		return "In Progress"
 	case MiningDone:
@@ -45,10 +46,10 @@ type NodeStatus struct {
 MiningStats describes mining
 */
 type MiningStats struct {
-	Status                 MiningStatus `json:"status"`
-	Coinbase               string       `json:"coinbase"`
-	SmeshingRemainingBytes int          `json:"remainingBytes,string"`
-	DataDir                string       `json:"dataDir"`
+	Status                 MiningStatus  `json:"status"`
+	Coinbase               types.Address `json:"-"`
+	SmeshingRemainingBytes int           `json:"remainingBytes,string"`
+	DataDir                string        `json:"dataDir"`
 }
 
 /*
@@ -98,14 +99,39 @@ func (c *ClientAgent) LuckyNodeStatus() (st NodeStatus) {
 GetMiningStats calls to node for the mining stats
 */
 func (c *ClientAgent) GetMiningStats() (st MiningStats, err error) {
-	err = c.post("/stats", nil, &st)
+	out := struct {
+		*MiningStats
+		StrCoinbase string `json:"coinbase"`
+	}{MiningStats: &st}
+	err = c.post("/stats", nil, &out)
+	if err == nil {
+		st.Coinbase, err = types.StringToAddress(out.StrCoinbase)
+	}
 	return
 }
 
 /*
 LuckyMiningStats calls to node for the mining stats. It panics on error
 */
-func (c *ClientAgent) LuckyMiningStatus() (st MiningStats) {
+func (c *ClientAgent) LuckyMiningStats() (st MiningStats) {
 	fu.LuckyCall(c.GetMiningStats, &st)
 	return
+}
+
+/*
+SetCoinbase sets coinbase address
+*/
+func (c *ClientAgent) SetCoinbase(address types.Address) (err error) {
+	in := struct {
+		Address string `json:"address"`
+	}{address.Hex()}
+	err = c.post("/setawardsaddr", &in, &struct{}{})
+	return
+}
+
+/*
+LuckyCoinbase sets coinbase address. It panics on error
+*/
+func (c *ClientAgent) LuckyCoinbase(address types.Address) {
+	fu.LuckyCall(c.SetCoinbase, nil, address)
 }

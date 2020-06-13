@@ -9,7 +9,7 @@ import (
 var cmdNet = &cobra.Command{
 	Use:   "net",
 	Short: "Display the node status",
-	Args:  cobra.MinimumNArgs(0),
+	Args:  cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
 		c := newClient()
 		nfo := c.LuckyNodeInfo()
@@ -24,7 +24,7 @@ var cmdNet = &cobra.Command{
 			"Max peers:", nfo.MaxPeers,
 			"Data directory:", nfo.DataDir,
 			"Mining status:", nfo.Status,
-			"Coinbase:", nfo.Coinbase,
+			"Coinbase:", nfo.Coinbase.Hex(),
 			"Remaining bytes:", nfo.SmeshingRemainingBytes,
 		)
 	},

@@ -56,7 +56,7 @@ var cmdSend = &cobra.Command{
 			ok = prompter.YN("Confirm transaction", false)
 		}
 		if !ok {
-			fmt.Println("cancelled")
+			fmt.Println("Cancelled")
 			return
 		}
 		txid := c.LuckyTransfer(uint64(amount), from.Address, nfo.Nonce, from.Private, to, uint64(fee), c.DefaultGasLimit)

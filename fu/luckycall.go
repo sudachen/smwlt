@@ -16,10 +16,15 @@ It panics if error occurred
 */
 func LuckyCall(f, ret interface{}, a ...interface{}) {
 	fv := reflect.ValueOf(f)
-	rv := reflect.ValueOf(ret)
 	v := fv.Call(args(a...))
-	if !v[1].IsNil() {
-		panic(Panic(v[1].Interface().(error), 3))
+	if ret != nil {
+		if !v[1].IsNil() {
+			panic(Panic(v[1].Interface().(error), 3))
+		}
+		reflect.ValueOf(ret).Elem().Set(v[0])
+	} else {
+		if !v[0].IsNil() {
+			panic(Panic(v[0].Interface().(error), 3))
+		}
 	}
-	rv.Elem().Set(v[0])
 }

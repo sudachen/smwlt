@@ -31,6 +31,7 @@ func Main() {
 		cmdNet,
 		cmdHexSign,
 		cmdTextSign,
+		cmdCoinbase,
 	)
 
 	if err := mainCmd.Execute(); err != nil {
@@ -41,7 +42,7 @@ func Main() {
 func loadWallet() (w []wallet.Wallet) {
 	if *optLegacy {
 		w = []wallet.Wallet{wallet.Legacy{Path: *optWalletFile}.LuckyLoad()}
-		// is not required to be unlocked
+		// unencrypted
 	} else {
 		w = []wallet.Wallet{}
 		for _, x := range w {

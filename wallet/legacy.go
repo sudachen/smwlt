@@ -18,6 +18,33 @@ DefaultAccountsJson specifies use local accounts.json file as an wallet
 */
 const DefaultAccountsJson = "accounts.json"
 
+/*
+Legacy defines legacy wallet options
+*/
+type Legacy struct {
+	Path string
+}
+
+/*
+Load loads wallet content from the file
+*/
+func (w Legacy) Load() (wal Wallet, err error) {
+	legacy := &LegacyWallet{}
+	if err = legacy.load(fu.Fne(w.Path, DefaultAccountsJson)); err != nil {
+		return
+	}
+	wal.WalletImpl = legacy
+	return
+}
+
+/*
+Load loads wallet content from the file. It panics on error
+*/
+func (w Legacy) LuckyLoad() (wal Wallet) {
+	fu.LuckyCall(w.Load, &wal)
+	return
+}
+
 type account struct {
 	Account
 	// there can be additional information related to wallet logic
@@ -103,31 +130,4 @@ Unlock implements WalletImpl interface
 func (*LegacyWallet) Unlock(string) error {
 	// unencrypted
 	return nil
-}
-
-/*
-Legacy defines legacy wallet options
-*/
-type Legacy struct {
-	Path string
-}
-
-/*
-Load loads wallet content from the file
-*/
-func (w Legacy) Load() (wal Wallet, err error) {
-	legacy := &LegacyWallet{}
-	if err = legacy.load(fu.Fne(w.Path, DefaultAccountsJson)); err != nil {
-		return
-	}
-	wal.WalletImpl = legacy
-	return
-}
-
-/*
-Load loads wallet content from the file. It panics on error
-*/
-func (w Legacy) LuckyLoad() (wal Wallet) {
-	fu.LuckyCall(w.Load, &wal)
-	return
 }

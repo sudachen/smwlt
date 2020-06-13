@@ -5,6 +5,7 @@ import (
 	"github.com/sudachen/smwlt/cli"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
+	"os"
 )
 
 func loadWallet(path string, legacy bool, password string) (w []wallet.Wallet) {
@@ -27,7 +28,8 @@ func main() {
 	defer func() {
 		if !*cli.OptTrace {
 			if e := recover(); e != nil {
-				fmt.Println(fu.PanicMessage(e))
+				fmt.Fprintln(os.Stderr, fu.PanicMessage(e))
+				os.Exit(1)
 			}
 		}
 	}()
