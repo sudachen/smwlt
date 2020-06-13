@@ -21,7 +21,7 @@ type ClientAgent struct {
 }
 
 /*
-Client describes mesh client options
+Client describes node client options
 */
 type Client struct {
 	Endpoint string
@@ -29,7 +29,7 @@ type Client struct {
 }
 
 /*
-New creates new mesh ClientAgent
+New creates new node ClientAgent
 */
 func (c Client) New() *ClientAgent {
 	return &ClientAgent{

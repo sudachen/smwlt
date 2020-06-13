@@ -3,7 +3,7 @@ package zinc
 import (
 	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	"github.com/sudachen/smwlt/mesh/api.v1"
+	"github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"math/rand"
 	"testing"

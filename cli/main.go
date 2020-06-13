@@ -4,24 +4,28 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
-	api "github.com/sudachen/smwlt/mesh/api.v1"
+	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 )
 
+const MajorVersion = 1
+const MinorVersion = 0
 const keyValueFormat = "%-8s %v\n"
 
 var mainCmd = &cobra.Command{
 	Use:              "smwlt",
-	TraverseChildren: true,
+	Short:			  fmt.Sprintf("Spacemesh CLI Wallet %v.%v (https://github.com/sudachen/smwlt)",MajorVersion,MinorVersion),
+	SilenceErrors:    true,
 }
 
-var optWalletFile = mainCmd.Flags().StringP("wallet", "w", "", "wallet filename")
-var optLegacy = mainCmd.Flags().BoolP("legacy", "l", false, "use legacy unencrypted file format")
-var optPassword = mainCmd.Flags().StringP("password", "p", "", "wallet unlock password")
-var optEndpoint = mainCmd.Flags().StringP("endpoint", "e", api.DefaultEndpoint, "host:port to connect mesh node")
-var optYes = mainCmd.Flags().BoolP("yes", "y", false, "auto confirm")
-var optVerbose = mainCmd.Flags().BoolP("verbose", "v", false, "be verbose")
-var OptTrace = mainCmd.Flags().BoolP("trace", "x", false, "backtrace on panic")
+var optWalletFile = mainCmd.PersistentFlags().StringP("wallet-file", "w", "", "use wallet filename")
+var optWalletName = mainCmd.PersistentFlags().StringP("wallet-name", "W", "", "select wallet by name")
+var optLegacy = mainCmd.PersistentFlags().BoolP("legacy", "l", false, "use legacy unencrypted file format")
+var optPassword = mainCmd.PersistentFlags().StringP("password", "p", "", "wallet unlock password")
+var optEndpoint = mainCmd.PersistentFlags().StringP("endpoint", "e", api.DefaultEndpoint, "host:port to connect mesh node")
+var optYes = mainCmd.PersistentFlags().BoolP("yes", "y", false, "auto confirm")
+var optVerbose = mainCmd.PersistentFlags().BoolP("verbose", "v", false, "be verbose")
+var OptTrace = mainCmd.PersistentFlags().BoolP("trace", "x", false, "backtrace on panic")
 
 func Main() {
 	mainCmd.AddCommand(
@@ -32,6 +36,7 @@ func Main() {
 		cmdHexSign,
 		cmdTextSign,
 		cmdCoinbase,
+		cmdNew,
 	)
 
 	if err := mainCmd.Execute(); err != nil {

@@ -3,7 +3,7 @@ package tests
 import (
 	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	api "github.com/sudachen/smwlt/mesh/api.v1"
+	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"gotest.tools/assert"
 	"testing"
