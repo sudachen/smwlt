@@ -3,7 +3,7 @@ package zinc
 import (
 	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	"github.com/sudachen/smwlt/mesh"
+	"github.com/sudachen/smwlt/mesh/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"math/rand"
 	"testing"
@@ -11,10 +11,10 @@ import (
 )
 
 func Test_Stress1(t *testing.T) {
-	ca := make([]*mesh.ClinetAgent, 5)
-	ca[0] = mesh.Client{}.New()
+	ca := make([]*api_v1.ClientAgent, 5)
+	ca[0] = api_v1.Client{}.New()
 	for i := 1; i < 5; i++ {
-		ca[i] = mesh.Client{Endpoint: fmt.Sprintf("localhost:919%d", i)}.New()
+		ca[i] = api_v1.Client{Endpoint: fmt.Sprintf("localhost:919%d", i)}.New()
 	}
 	c := ca[0]
 	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
@@ -45,7 +45,7 @@ func Test_Stress1(t *testing.T) {
 			to := a[k]
 			c = ca[rand.Int31n(int32(len(ca)))]
 			var err error
-			txid, err = c.Transfer(1, from.Address, nonce[j], from.Private, to.Address, mesh.DefaultFee, mesh.DefaultGasLimit)
+			txid, err = c.Transfer(1, from.Address, nonce[j], from.Private, to.Address, api_v1.DefaultFee, api_v1.DefaultGasLimit)
 			if err == nil {
 				nonce[j]++
 			} else {
@@ -55,8 +55,8 @@ func Test_Stress1(t *testing.T) {
 		time.Sleep(3 * time.Second)
 	}
 	for {
-		txnfo := ca[0].LuckyTransaction(txid)
-		if txnfo.Status == mesh.TxConfirmed {
+		txnfo := ca[0].LuckyTransactionInfo(txid)
+		if txnfo.Status == api_v1.TxConfirmed {
 			break
 		}
 		time.Sleep(10 * time.Second)

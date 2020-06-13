@@ -53,7 +53,7 @@ func (wal *LegacyWallet) load(path string) (err error) {
 
 	wal.accounts = make([]account, 0, len(m))
 	for k, v := range m {
-		a := account{Account{Name: k}}
+		a := account{Account{Name: k, Wallet: Wallet{wal}}}
 		if a.Address, err = types.StringToAddress(v.PubKey); err != nil {
 			return fu.Wrap(err, "failed to decode public key")
 		}
@@ -66,16 +66,35 @@ func (wal *LegacyWallet) load(path string) (err error) {
 }
 
 /*
+List implements WalletImpl interface
+*/
+func (w *LegacyWallet) List() []Account {
+	accs := make([]Account, len(w.accounts))
+	for i, a := range w.accounts {
+		accs[i] = a.Account
+	}
+	return accs
+}
+
+/*
 Lookup implements WalletImpl interface
 */
 func (w *LegacyWallet) Lookup(alias string) (acc Account, exists bool) {
 	alias = strings.ToLower(alias)
 	for _, a := range w.accounts {
-		if a.Name == alias || strings.HasPrefix(alias, "0x") && strings.HasPrefix(a.Address.Hex(), alias) {
+		if strings.ToLower(a.Name) == alias ||
+			strings.HasPrefix(alias, "0x") && strings.HasPrefix(strings.ToLower(a.Address.Hex()), alias) {
 			return a.Account, true
 		}
 	}
 	return
+}
+
+/*
+Name implements WalletImpl interface
+*/
+func (*LegacyWallet) Name() string {
+	return "LegacyWallet(accounts.json)"
 }
 
 /*

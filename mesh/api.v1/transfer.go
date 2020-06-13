@@ -1,4 +1,4 @@
-package mesh
+package api_v1
 
 import (
 	"github.com/spacemeshos/ed25519"
@@ -6,10 +6,16 @@ import (
 	"github.com/sudachen/smwlt/fu"
 )
 
-const DefaultFee = 1
+// DefaultFee for transfer in the Spacemesh network
+const DefaultFee = 10
+
+// DefaultGasLimit for tranfer in the Spacemesh network
 const DefaultGasLimit = 100
 
-func (c *ClinetAgent) Transfer(
+/*
+Transfer creates transaction and submits it to network
+*/
+func (c *ClientAgent) Transfer(
 	amount uint64,
 	from types.Address, nonce uint64, key ed25519.PrivateKey,
 	to types.Address,
@@ -46,7 +52,10 @@ func (c *ClinetAgent) Transfer(
 	return
 }
 
-func (c *ClinetAgent) LuckyTransfer(
+/*
+Transfer creates transaction and submits it to network. It panics on error
+*/
+func (c *ClientAgent) LuckyTransfer(
 	amount uint64,
 	from types.Address, nonce uint64, key ed25519.PrivateKey,
 	to types.Address,

@@ -1,4 +1,4 @@
-package mesh
+package api_v1
 
 import (
 	"github.com/sudachen/smwlt/fu"
@@ -16,6 +16,18 @@ const (
 	MiningDone
 )
 
+func (st MiningStatus) String() string {
+	switch st {
+	case MiningIdel:
+		return "Idel"
+	case MiningInProgress:
+		return "In Progress"
+	case MiningDone:
+		return "Done"
+	}
+	return "Unknown"
+}
+
 /*
 NodeStatus describes mesh node
 */
@@ -27,7 +39,6 @@ type NodeStatus struct {
 	Peers         uint64 `json:"peers,string"`
 	MinPeers      uint64 `json:"minPeers,string"`
 	MaxPeers      uint64 `json:"maxPeers,string"`
-	DataDir       string `json:"dataDir"`
 }
 
 /*
@@ -37,6 +48,7 @@ type MiningStats struct {
 	Status                 MiningStatus `json:"status"`
 	Coinbase               string       `json:"coinbase"`
 	SmeshingRemainingBytes int          `json:"remainingBytes,string"`
+	DataDir                string       `json:"dataDir"`
 }
 
 /*
@@ -50,7 +62,7 @@ type NodeInfo struct {
 /*
 GetNodeInfo calls to node for the integral node information
 */
-func (c *ClinetAgent) GetNodeInfo() (info NodeInfo, err error) {
+func (c *ClientAgent) GetNodeInfo() (info NodeInfo, err error) {
 	if info.NodeStatus, err = c.GetNodeStatus(); err != nil {
 		return
 	}
@@ -61,7 +73,7 @@ func (c *ClinetAgent) GetNodeInfo() (info NodeInfo, err error) {
 /*
 LuckyNodeInfo calls to node for the integral node information. It panics on error
 */
-func (c *ClinetAgent) LuckyNodeInfo() (info NodeInfo) {
+func (c *ClientAgent) LuckyNodeInfo() (info NodeInfo) {
 	fu.LuckyCall(c.GetNodeInfo, &info)
 	return
 }
@@ -69,7 +81,7 @@ func (c *ClinetAgent) LuckyNodeInfo() (info NodeInfo) {
 /*
 GetNodeStatus calls to node for the node status
 */
-func (c *ClinetAgent) GetNodeStatus() (st NodeStatus, err error) {
+func (c *ClientAgent) GetNodeStatus() (st NodeStatus, err error) {
 	err = c.post("/nodestatus", nil, &st)
 	return
 }
@@ -77,7 +89,7 @@ func (c *ClinetAgent) GetNodeStatus() (st NodeStatus, err error) {
 /*
 LuckyNodeStatus calls to node for the node status. It panics on error
 */
-func (c *ClinetAgent) LuckyNodeStatus() (st NodeStatus) {
+func (c *ClientAgent) LuckyNodeStatus() (st NodeStatus) {
 	fu.LuckyCall(c.GetNodeStatus, &st)
 	return
 }
@@ -85,7 +97,7 @@ func (c *ClinetAgent) LuckyNodeStatus() (st NodeStatus) {
 /*
 GetMiningStats calls to node for the mining stats
 */
-func (c *ClinetAgent) GetMiningStats() (st MiningStats, err error) {
+func (c *ClientAgent) GetMiningStats() (st MiningStats, err error) {
 	err = c.post("/stats", nil, &st)
 	return
 }
@@ -93,7 +105,7 @@ func (c *ClinetAgent) GetMiningStats() (st MiningStats, err error) {
 /*
 LuckyMiningStats calls to node for the mining stats. It panics on error
 */
-func (c *ClinetAgent) LuckyMiningStatus() (st MiningStats) {
+func (c *ClientAgent) LuckyMiningStatus() (st MiningStats) {
 	fu.LuckyCall(c.GetMiningStats, &st)
 	return
 }

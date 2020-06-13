@@ -3,7 +3,7 @@ package tests
 import (
 	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	"github.com/sudachen/smwlt/mesh"
+	api "github.com/sudachen/smwlt/mesh/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"gotest.tools/assert"
 	"testing"
@@ -11,13 +11,13 @@ import (
 )
 
 func Test_NodeInfo(t *testing.T) {
-	c := mesh.Client{Verbose: true}.New()
+	c := api.Client{Verbose: true}.New()
 	info := c.LuckyNodeInfo()
 	fmt.Printf("%#v\n", info)
 }
 
 func Test_AccountInfo(t *testing.T) {
-	c := mesh.Client{Verbose: true}.New()
+	c := api.Client{Verbose: true}.New()
 	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	info := c.LuckyAccountInfo(anton.Address)
@@ -25,7 +25,7 @@ func Test_AccountInfo(t *testing.T) {
 }
 
 func Test_Transfer(t *testing.T) {
-	c := mesh.Client{Verbose: true}.New()
+	c := api.Client{Verbose: true}.New()
 	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
@@ -33,13 +33,13 @@ func Test_Transfer(t *testing.T) {
 	fmt.Printf("anton: %#v\n", anton_info1.Balance)
 	almong_info1 := c.LuckyAccountInfo(almog.Address)
 	fmt.Printf("almog: %#v\n", almong_info1.Balance)
-	txid := c.LuckyTransfer(100, anton.Address, anton_info1.Nonce, anton.Private, almog.Address, mesh.DefaultFee, mesh.DefaultGasLimit)
+	txid := c.LuckyTransfer(100, anton.Address, anton_info1.Nonce, anton.Private, almog.Address, api.DefaultFee, api.DefaultGasLimit)
 	fmt.Printf("txid: %v\n", txid)
 
 	for {
-		txinfo := c.LuckyTransaction(txid)
-		assert.Assert(t, txinfo.Status != mesh.TxRejected)
-		if txinfo.Status == mesh.TxConfirmed {
+		txinfo := c.LuckyTransactionInfo(txid)
+		assert.Assert(t, txinfo.Status != api.TxRejected)
+		if txinfo.Status == api.TxConfirmed {
 			break
 		}
 		time.Sleep(5 * time.Second)
@@ -52,7 +52,7 @@ func Test_Transfer(t *testing.T) {
 }
 
 func Test_TxList(t *testing.T) {
-	c := mesh.Client{Verbose: true}.New()
+	c := api.Client{Verbose: true}.New()
 	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
@@ -63,13 +63,13 @@ func Test_TxList(t *testing.T) {
 	fmt.Printf("almog: %#v\n", almong_info1.Balance)
 	txs1 := []types.TransactionID{}
 	for k, x := range []uint64{100, 200, 300, 400, 500} {
-		txid := c.LuckyTransfer(x, anton.Address, anton_info1.Nonce+uint64(k), anton.Private, almog.Address, mesh.DefaultFee, mesh.DefaultGasLimit)
+		txid := c.LuckyTransfer(x, anton.Address, anton_info1.Nonce+uint64(k), anton.Private, almog.Address, api.DefaultFee, api.DefaultGasLimit)
 		fmt.Printf("txid: %v\n", txid)
 		txs1 = append(txs1, txid)
 	}
 	txs2 := c.LuckyTxList(anton.Address, info.VerifiedLayer)
 	for i, t := range txs2 {
 		//fmt.Println(i,t)
-		fmt.Println(i, c.LuckyTransaction(t))
+		fmt.Println(i, c.LuckyTransactionInfo(t))
 	}
 }

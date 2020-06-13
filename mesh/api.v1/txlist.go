@@ -1,11 +1,14 @@
-package mesh
+package api_v1
 
 import (
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
 )
 
-func (c *ClinetAgent) GetTxList(address types.Address, startLayer uint64) (txs []types.TransactionID, err error) {
+/*
+GetTxList lists network transfers from/to specified account
+*/
+func (c *ClientAgent) GetTxList(address types.Address, startLayer uint64) (txs []types.TransactionID, err error) {
 	type account struct {
 		Address string `json:"address"`
 	}
@@ -30,7 +33,10 @@ func (c *ClinetAgent) GetTxList(address types.Address, startLayer uint64) (txs [
 	return
 }
 
-func (c *ClinetAgent) LuckyTxList(address types.Address, startLayer uint64) (txs []types.TransactionID) {
+/*
+LuckyTxList lists network transfers from/to specified account. It panics on error
+*/
+func (c *ClientAgent) LuckyTxList(address types.Address, startLayer uint64) (txs []types.TransactionID) {
 	fu.LuckyCall(c.GetTxList, &txs, address, startLayer)
 	return
 }

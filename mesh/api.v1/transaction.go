@@ -1,7 +1,6 @@
-package mesh
+package api_v1
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
@@ -9,6 +8,9 @@ import (
 	"time"
 )
 
+/*
+TxStatus describes mesh transaction status
+*/
 type TxStatus int
 
 const (
@@ -18,6 +20,9 @@ const (
 	TxConfirmed
 )
 
+/*
+String returns string representation of transaction status
+*/
 func (s TxStatus) String() string {
 	switch s {
 	case TxNotfound:
@@ -32,6 +37,9 @@ func (s TxStatus) String() string {
 	return "Unknown"
 }
 
+/*
+TransactionInfo contains whole transaction information
+*/
 type TransactionInfo struct {
 	Id        types.TransactionID
 	From      types.Address
@@ -43,7 +51,10 @@ type TransactionInfo struct {
 	LayerId   uint64 `json:"layerId,string"`
 }
 
-func (c *ClinetAgent) GetTransaction(txid types.TransactionID) (info TransactionInfo, err error) {
+/*
+GetTransactionInfo returns whole transaction information by transaction id
+*/
+func (c *ClientAgent) GetTransactionInfo(txid types.TransactionID) (info TransactionInfo, err error) {
 	out := struct {
 		*TransactionInfo
 		IdStr struct {
@@ -62,8 +73,8 @@ func (c *ClinetAgent) GetTransaction(txid types.TransactionID) (info Transaction
 	err = c.post("/gettransaction", &struct {
 		Id []byte `json:"id"`
 	}{txid.Bytes()}, &out)
-	if e := errors.Unwrap(err); e != nil {
-		if strings.Contains(e.Error(), "not found") {
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
 			return TransactionInfo{Status: TxNotfound}, nil
 		}
 		return
@@ -89,7 +100,10 @@ func (c *ClinetAgent) GetTransaction(txid types.TransactionID) (info Transaction
 	return
 }
 
-func (c *ClinetAgent) LuckyTransaction(txid types.TransactionID) (info TransactionInfo) {
-	fu.LuckyCall(c.GetTransaction, &info, txid)
+/*
+LuckyTransactionInfo returns whole transaction information by transaction id. It panics on error
+*/
+func (c *ClientAgent) LuckyTransactionInfo(txid types.TransactionID) (info TransactionInfo) {
+	fu.LuckyCall(c.GetTransactionInfo, &info, txid)
 	return
 }

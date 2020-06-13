@@ -1,11 +1,12 @@
-package mesh
+package api_v1
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/spacemeshos/go-spacemesh/log"
 	"github.com/sudachen/smwlt/fu"
-	"github.com/sudachen/smwlt/log"
 	"io/ioutil"
 	"net/http"
 )
@@ -13,7 +14,7 @@ import (
 const DefaultEndpoint = "localhost:9090"
 const DefaultVerbose = false
 
-type ClinetAgent struct {
+type ClientAgent struct {
 	verbose bool
 	baseUrl string
 	http    *http.Client
@@ -28,17 +29,17 @@ type Client struct {
 }
 
 /*
-New creates new mesh ClinetAgent
+New creates new mesh ClientAgent
 */
-func (c Client) New() *ClinetAgent {
-	return &ClinetAgent{
+func (c Client) New() *ClientAgent {
+	return &ClientAgent{
 		baseUrl: "http://" + fu.Fne(c.Endpoint, DefaultEndpoint) + "/v1",
 		verbose: fu.Fnf(c.Verbose, DefaultVerbose),
 		http:    &http.Client{},
 	}
 }
 
-func (c *ClinetAgent) post(api string, in, out interface{}) (err error) {
+func (c *ClientAgent) post(api string, in, out interface{}) (err error) {
 	data, err := json.Marshal(in)
 	if err != nil {
 		return
@@ -67,8 +68,11 @@ func (c *ClinetAgent) post(api string, in, out interface{}) (err error) {
 		rb := struct {
 			Error string `json:"error"`
 		}{}
-		json.Unmarshal(resBody, &rb)
-		err = fu.Wrapf(errors.New(rb.Error), "`%v` response status code: %d", api, res.StatusCode)
+		if json.Unmarshal(resBody, &rb) == nil && rb.Error != "" {
+			err = errors.New(rb.Error)
+		} else {
+			err = fmt.Errorf("`%v` response status code: %d", api, res.StatusCode)
+		}
 		if c.verbose {
 			log.Error("request failed with error " + err.Error())
 		}
@@ -78,7 +82,7 @@ func (c *ClinetAgent) post(api string, in, out interface{}) (err error) {
 	return json.Unmarshal(resBody, out)
 }
 
-func (c *ClinetAgent) getValue64(api string, in interface{}) (uint64, error) {
+func (c *ClientAgent) getValue64(api string, in interface{}) (uint64, error) {
 	out := struct {
 		Value uint64 `json:"value,string"`
 	}{}
@@ -86,7 +90,7 @@ func (c *ClinetAgent) getValue64(api string, in interface{}) (uint64, error) {
 	return out.Value, err
 }
 
-func (c *ClinetAgent) getValueBool(api string, in interface{}) (bool, error) {
+func (c *ClientAgent) getValueBool(api string, in interface{}) (bool, error) {
 	out := struct {
 		Value bool `json:"value"`
 	}{}
