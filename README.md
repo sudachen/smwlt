@@ -4,6 +4,7 @@ Usage:
   smwlt [command]
 
 Available Commands:
+  coinbase    Set the account as coinbase account in the node
   help        Help about any command
   info        Display accounts info (address, balance, and nonce)
   net         Display the node status
