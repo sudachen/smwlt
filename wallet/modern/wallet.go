@@ -25,7 +25,7 @@ func (w Wallet) Load() (wal wallet.Wallet, err error) {
 }
 
 /*
-Load loads wallet content from the file. It panics on error
+LuckyLoad loads wallet content from the file. It panics on error
 */
 func (w Wallet) LuckyLoad() (wal wallet.Wallet) {
 	fu.LuckyCall(w.Load, &wal)

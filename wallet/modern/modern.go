@@ -112,7 +112,7 @@ func (w *ModernWallet) List() []wallet.Account {
 }
 
 /*
-List implements WalletImpl interface
+Path implements WalletImpl interface
 */
 func (w *ModernWallet) Path() string {
 	return w.path

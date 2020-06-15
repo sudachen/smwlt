@@ -71,7 +71,7 @@ func (w *LegacyWallet) List() []wallet.Account {
 }
 
 /*
-List implements WalletImpl interface
+Path implements WalletImpl interface
 */
 func (w *LegacyWallet) Path() string {
 	return w.path
