@@ -5,12 +5,13 @@ import (
 	"github.com/sudachen/smwlt/cli"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
+	legacy2 "github.com/sudachen/smwlt/wallet/legacy"
 	"os"
 )
 
 func loadWallet(path string, legacy bool, password string) (w []wallet.Wallet) {
 	if legacy {
-		w = []wallet.Wallet{wallet.Legacy{Path: path}.LuckyLoad()}
+		w = []wallet.Wallet{legacy2.Wallet{Path: path}.LuckyLoad()}
 	} else {
 		panic(fu.Panic(fmt.Errorf("unsupported wallet type")))
 	}

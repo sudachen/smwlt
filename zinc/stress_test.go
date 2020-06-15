@@ -5,6 +5,7 @@ import (
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
+	"github.com/sudachen/smwlt/wallet/legacy"
 	"math/rand"
 	"testing"
 	"time"
@@ -17,7 +18,7 @@ func Test_Stress1(t *testing.T) {
 		ca[i] = api_v1.Client{Endpoint: fmt.Sprintf("localhost:919%d", i)}.New()
 	}
 	c := ca[0]
-	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	a := []wallet.Account{}
 	a = append(a, wallet.LuckyLookup("anton", w))
 	a = append(a, wallet.LuckyLookup("almog", w))

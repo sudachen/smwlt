@@ -24,7 +24,7 @@ var cmdInfo = &cobra.Command{
 					nfo := c.LuckyAccountInfo(a.Address)
 					fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
 						a.Name,
-						a.Wallet.Name(),
+						a.Wallet.DisplayName(),
 						"Address:", a.Address.Hex(),
 						"Balance:", nfo.Balance,
 						"Nonce:", nfo.Nonce,
@@ -45,13 +45,13 @@ var cmdInfo = &cobra.Command{
 					if err != nil {
 						fmt.Printf("Account %v [%v]:\n\t%v\n",
 							a.Name,
-							a.Wallet.Name(),
+							a.Wallet.DisplayName(),
 							err.Error(),
 						)
 					} else {
 						fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
 							a.Name,
-							a.Wallet.Name(),
+							a.Wallet.DisplayName(),
 							"Address:", a.Address.Hex(),
 							"Balance:", nfo.Balance,
 							"Nonce:", nfo.Nonce,

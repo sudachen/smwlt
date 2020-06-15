@@ -5,17 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/spacemeshos/go-spacemesh/log"
 	"github.com/sudachen/smwlt/fu"
 	"io/ioutil"
 	"net/http"
 )
 
 const DefaultEndpoint = "localhost:9090"
-const DefaultVerbose = false
 
 type ClientAgent struct {
-	verbose bool
+	verbose func(string, ...interface{})
 	baseUrl string
 	http    *http.Client
 }
@@ -25,16 +23,20 @@ Client describes node client options
 */
 type Client struct {
 	Endpoint string
-	Verbose  bool
+	Verbose  func(string, ...interface{})
 }
 
 /*
 New creates new node ClientAgent
 */
 func (c Client) New() *ClientAgent {
+	verbose := c.Verbose
+	if verbose == nil {
+		verbose = func(string, ...interface{}) {}
+	}
 	return &ClientAgent{
 		baseUrl: "http://" + fu.Fne(c.Endpoint, DefaultEndpoint) + "/v1",
-		verbose: fu.Fnf(c.Verbose, DefaultVerbose),
+		verbose: verbose,
 		http:    &http.Client{},
 	}
 }
@@ -45,9 +47,7 @@ func (c *ClientAgent) post(api string, in, out interface{}) (err error) {
 		return
 	}
 	url := c.baseUrl + api
-	if c.verbose {
-		log.Info("request: %v, body: %s", url, data)
-	}
+	c.verbose("request: %v, body: %s", url, data)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	if err != nil {
 		return
@@ -60,9 +60,7 @@ func (c *ClientAgent) post(api string, in, out interface{}) (err error) {
 	defer res.Body.Close()
 
 	resBody, _ := ioutil.ReadAll(res.Body)
-	if c.verbose {
-		log.Info("response body: %s", resBody)
-	}
+	c.verbose("response body: %s", resBody)
 
 	if res.StatusCode != http.StatusOK {
 		rb := struct {
@@ -73,9 +71,7 @@ func (c *ClientAgent) post(api string, in, out interface{}) (err error) {
 		} else {
 			err = fmt.Errorf("`%v` response status code: %d", api, res.StatusCode)
 		}
-		if c.verbose {
-			log.Error("request failed with error " + err.Error())
-		}
+		c.verbose("request failed with error " + err.Error())
 		return
 	}
 

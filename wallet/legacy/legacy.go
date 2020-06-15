@@ -1,52 +1,17 @@
-package wallet
+package legacy
 
 import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/wallet"
 	"os"
 	"strings"
 )
 
-/*
-It's an implementation of the legacy (CLI_Wallet) non-encrypted wallet.
-*/
-
-/*
-DefaultAccountsJson specifies use local accounts.json file as an wallet
-*/
-const DefaultAccountsJson = "accounts.json"
-
-/*
-Legacy defines legacy wallet options
-*/
-type Legacy struct {
-	Path string
-}
-
-/*
-Load loads wallet content from the file
-*/
-func (w Legacy) Load() (wal Wallet, err error) {
-	legacy := &LegacyWallet{}
-	if err = legacy.load(fu.Fne(w.Path, DefaultAccountsJson)); err != nil {
-		return
-	}
-	wal.WalletImpl = legacy
-	return
-}
-
-/*
-Load loads wallet content from the file. It panics on error
-*/
-func (w Legacy) LuckyLoad() (wal Wallet) {
-	fu.LuckyCall(w.Load, &wal)
-	return
-}
-
 type account struct {
-	Account
+	wallet.Account
 	// there can be additional information related to wallet logic
 }
 
@@ -55,9 +20,10 @@ LegacyWallet implements wallet with WalletImpl interface
 */
 type LegacyWallet struct {
 	accounts []account
+	path     string
 }
 
-func (wal *LegacyWallet) load(path string) (err error) {
+func (w *LegacyWallet) load(path string) (err error) {
 
 	type keys struct {
 		PubKey  string `json:"pubkey"`
@@ -78,25 +44,26 @@ func (wal *LegacyWallet) load(path string) (err error) {
 		return
 	}
 
-	wal.accounts = make([]account, 0, len(m))
+	w.accounts = make([]account, 0, len(m))
 	for k, v := range m {
-		a := account{Account{Name: k, Wallet: Wallet{wal}}}
+		a := account{wallet.Account{Name: k, Wallet: wallet.Wallet{w}}}
 		if a.Address, err = types.StringToAddress(v.PubKey); err != nil {
 			return fu.Wrap(err, "failed to decode public key")
 		}
 		if a.Private, err = hex.DecodeString(v.PrivKey); err != nil {
 			return fu.Wrap(err, "failed to decode private key")
 		}
-		wal.accounts = append(wal.accounts, a)
+		w.accounts = append(w.accounts, a)
 	}
+	w.path = path
 	return
 }
 
 /*
 List implements WalletImpl interface
 */
-func (w *LegacyWallet) List() []Account {
-	accs := make([]Account, len(w.accounts))
+func (w *LegacyWallet) List() []wallet.Account {
+	accs := make([]wallet.Account, len(w.accounts))
 	for i, a := range w.accounts {
 		accs[i] = a.Account
 	}
@@ -104,9 +71,16 @@ func (w *LegacyWallet) List() []Account {
 }
 
 /*
+List implements WalletImpl interface
+*/
+func (w *LegacyWallet) Path() string {
+	return w.path
+}
+
+/*
 Lookup implements WalletImpl interface
 */
-func (w *LegacyWallet) Lookup(alias string) (acc Account, exists bool) {
+func (w *LegacyWallet) Lookup(alias string) (acc wallet.Account, exists bool) {
 	alias = strings.ToLower(alias)
 	for _, a := range w.accounts {
 		if strings.ToLower(a.Name) == alias ||
@@ -120,8 +94,8 @@ func (w *LegacyWallet) Lookup(alias string) (acc Account, exists bool) {
 /*
 Name implements WalletImpl interface
 */
-func (*LegacyWallet) Name() string {
-	return "LegacyWallet(accounts.json)"
+func (w *LegacyWallet) Name() string {
+	return "LegacyWallet"
 }
 
 /*

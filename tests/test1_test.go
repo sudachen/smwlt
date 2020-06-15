@@ -5,6 +5,7 @@ import (
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
+	"github.com/sudachen/smwlt/wallet/legacy"
 	"gotest.tools/assert"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ func Test_NodeInfo(t *testing.T) {
 
 func Test_AccountInfo(t *testing.T) {
 	c := api.Client{Verbose: true}.New()
-	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	info := c.LuckyAccountInfo(anton.Address)
 	fmt.Printf("%#v\n", info)
@@ -26,7 +27,7 @@ func Test_AccountInfo(t *testing.T) {
 
 func Test_Transfer(t *testing.T) {
 	c := api.Client{Verbose: true}.New()
-	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
 	anton_info1 := c.LuckyAccountInfo(anton.Address)
@@ -53,7 +54,7 @@ func Test_Transfer(t *testing.T) {
 
 func Test_TxList(t *testing.T) {
 	c := api.Client{Verbose: true}.New()
-	w := wallet.Legacy{Path: "../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
 	info := c.LuckyNodeInfo()

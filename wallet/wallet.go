@@ -5,6 +5,7 @@ import (
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -20,11 +21,17 @@ type Account struct {
 	Wallet  Wallet
 }
 
+type Contact struct {
+	Name    string
+	Address types.Address
+}
+
 /*
 Wallet implementation
 */
 type WalletImpl interface {
 	Name() string
+	Path() string
 	Unlock(key string) error
 	Lookup(alias string) (Account, bool)
 	List() []Account
@@ -44,6 +51,13 @@ func (wal Wallet) LuckyUnlock(key string) {
 	if err := wal.Unlock(key); err != nil {
 		panic(fu.Panic(err, 2))
 	}
+}
+
+/*
+DisplayName retruns composition of wallet name and its file
+*/
+func (wal Wallet) DisplayName() string {
+	return fmt.Sprintf("%v(%v)", wal.Name(), filepath.Base(wal.Path()))
 }
 
 /*
@@ -76,7 +90,7 @@ func LookupOne(alias string, w ...Wallet) (acc Account, exists bool) {
 	if len(accs) > 1 {
 		v := []string{}
 		for _, a := range accs {
-			v = append(v, fmt.Sprintf("\t%v [%v]\n", a.Name, a.Address.Hex(), a.Wallet.Name()))
+			v = append(v, fmt.Sprintf("\t%v [%v]\n", a.Name, a.Address.Hex(), a.Wallet.DisplayName()))
 		}
 		panic(fu.Panic(
 			fmt.Errorf("Account '%v' is ambiguous:\n"+strings.Join(v, ""),
