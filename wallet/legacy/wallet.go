@@ -25,11 +25,7 @@ type Wallet struct {
 Load loads wallet content from the file
 */
 func (w Wallet) Load() (wal wallet.Wallet, err error) {
-	legacy := &LegacyWallet{}
-	if err = legacy.load(fu.Fne(w.Path, DefaultAccountsJson)); err != nil {
-		return
-	}
-	wal.WalletImpl = legacy
+	wal, err = load(fu.Fne(w.Path, DefaultAccountsJson))
 	return
 }
 

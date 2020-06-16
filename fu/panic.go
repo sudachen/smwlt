@@ -2,6 +2,7 @@ package fu
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"golang.org/x/xerrors"
 	"strings"
@@ -19,14 +20,24 @@ func Panic(err error, skip ...int) interface{} {
 	return xpanic{err}
 }
 
+/*
+PanicMessage returns a message from the panic object
+*/
 func PanicMessage(e interface{}) string {
 	if p, ok := e.(xpanic); ok {
-		if err := p.Unwrap(); err != nil {
-			return err.Error()
-		}
-		return p.Error()
+		return p.err.Error()
 	}
 	return fmt.Sprint(e)
+}
+
+/*
+PanicError returns an error from the panic object
+*/
+func PanicError(e interface{}) error {
+	if p, ok := e.(xpanic); ok {
+		return p.err
+	}
+	return errors.New(fmt.Sprint(e))
 }
 
 func (x xpanic) stringify(indepth bool) string {
@@ -99,6 +110,10 @@ Error creates new error
 */
 func Error(message string) error {
 	return xerror{xerrors.New(message), xerrors.Caller(1)}
+}
+
+func (e *xerror) Is(err error) bool {
+	return errors.Is(e.error, err)
 }
 
 type xerror struct {

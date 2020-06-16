@@ -15,15 +15,14 @@ type account struct {
 	// there can be additional information related to wallet logic
 }
 
-/*
-LegacyWallet implements wallet with WalletImpl interface
-*/
-type LegacyWallet struct {
+type legacyWallet struct {
 	accounts []account
 	path     string
 }
 
-func (w *LegacyWallet) load(path string) (err error) {
+func load(path string) (wal wallet.Wallet, err error) {
+
+	w := &legacyWallet{}
 
 	type keys struct {
 		PubKey  string `json:"pubkey"`
@@ -48,21 +47,22 @@ func (w *LegacyWallet) load(path string) (err error) {
 	for k, v := range m {
 		a := account{wallet.Account{Name: k, Wallet: wallet.Wallet{w}}}
 		if a.Address, err = types.StringToAddress(v.PubKey); err != nil {
-			return fu.Wrap(err, "failed to decode public key")
+			return wal, fu.Wrap(err, "failed to decode public key")
 		}
 		if a.Private, err = hex.DecodeString(v.PrivKey); err != nil {
-			return fu.Wrap(err, "failed to decode private key")
+			return wal, fu.Wrap(err, "failed to decode private key")
 		}
 		w.accounts = append(w.accounts, a)
 	}
 	w.path = path
+	wal.WalletImpl = w
 	return
 }
 
 /*
 List implements WalletImpl interface
 */
-func (w *LegacyWallet) List() []wallet.Account {
+func (w *legacyWallet) List() []wallet.Account {
 	accs := make([]wallet.Account, len(w.accounts))
 	for i, a := range w.accounts {
 		accs[i] = a.Account
@@ -73,14 +73,14 @@ func (w *LegacyWallet) List() []wallet.Account {
 /*
 Path implements WalletImpl interface
 */
-func (w *LegacyWallet) Path() string {
+func (w *legacyWallet) Path() string {
 	return w.path
 }
 
 /*
 Lookup implements WalletImpl interface
 */
-func (w *LegacyWallet) Lookup(alias string) (acc wallet.Account, exists bool) {
+func (w *legacyWallet) Lookup(alias string) (acc wallet.Account, exists bool) {
 	alias = strings.ToLower(alias)
 	for _, a := range w.accounts {
 		if strings.ToLower(a.Name) == alias ||
@@ -94,14 +94,14 @@ func (w *LegacyWallet) Lookup(alias string) (acc wallet.Account, exists bool) {
 /*
 Name implements WalletImpl interface
 */
-func (w *LegacyWallet) Name() string {
-	return "LegacyWallet"
+func (w *legacyWallet) Name() string {
+	return "legacyWallet"
 }
 
 /*
 Unlock implements WalletImpl interface
 */
-func (*LegacyWallet) Unlock(string) error {
+func (*legacyWallet) Unlock(string) error {
 	// unencrypted
 	return nil
 }

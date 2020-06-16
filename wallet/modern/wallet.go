@@ -16,11 +16,7 @@ type Wallet struct {
 Load loads wallet content from the file
 */
 func (w Wallet) Load() (wal wallet.Wallet, err error) {
-	modern := &ModernWallet{}
-	if err = modern.load(w.Path); err != nil {
-		return
-	}
-	wal.WalletImpl = modern
+	wal, err = load(w.Path)
 	return
 }
 

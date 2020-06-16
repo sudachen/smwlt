@@ -35,6 +35,7 @@ var optYes = mainCmd.PersistentFlags().BoolP("yes", "y", false, "auto confirm")
 var OptTrace = mainCmd.PersistentFlags().BoolP("trace", "x", false, "backtrace on panic")
 
 func Main() {
+	mainCmd.PersistentFlags().BoolP("help", "h", false, "help for info")
 	verbose.VerboseOptP = mainCmd.PersistentFlags().BoolP("verbose", "v", false, "be verbose")
 	mainCmd.AddCommand(
 		cmdInfo,
