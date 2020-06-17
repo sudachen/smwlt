@@ -192,6 +192,7 @@ func (w *modernWallet) Unlock(password string) (err error) {
 }
 
 func (w *modernWallet) Save() (err error) {
+
 	if _, e := os.Stat(w.path); e == nil {
 		_ = os.Remove(w.path + "~")
 		if err = os.Rename(w.path, w.path+"~"); err != nil {
@@ -219,6 +220,7 @@ func (w *modernWallet) Save() (err error) {
 	if err = f.Close(); err != nil {
 		return
 	}
+	_ = os.Remove(w.path + "~")
 	return
 }
 
@@ -227,18 +229,23 @@ func (w *modernWallet) NewPair(alias string) (err error) {
 	seed := bip39.NewSeed(w.secret.Value("mnemonic").String(), "")
 	key := ed25519.NewDerivedKeyFromSeed(seed[:32], uint64(no), []byte(defaultSalt))
 	pub := key.Public().(ed25519.PublicKey)[:]
-	a := wallet.Account{alias, types.BytesToAddress(pub), key, wallet.Wallet{w}}
+
+	return w.AddPair(alias, types.BytesToAddress(pub), key, no)
+}
+
+func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.PrivateKey, index int) (err error) {
+	a := wallet.Account{ alias, address, key, wallet.Wallet{w}}
 
 	/*
 		It does not write accounts list because wallet records can contains additional fields not parsed on load.
 		So this code may work even if some parts of wallet format will changed
 	*/
 
-	accounts := w.secret.Val["accounts"].([]map[string]interface{})
+	accounts := w.secret.Val["accounts"].([]interface{})
 	w.secret.Val["accounts"] = append(accounts, map[string]interface{}{
 		"displayName": alias,
 		"created":     now(),
-		"path":        fmt.Sprintf("0/0/%d", no),
+		"path":        fmt.Sprintf("0/0/%d", index),
 		"publicKey":   a.Address.Hex(),
 		"secretKey":   hex.EncodeToString(key[:]),
 	})
@@ -259,3 +266,8 @@ func (w *modernWallet) NewPair(alias string) (err error) {
 
 	return
 }
+
+func (w *modernWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
+	return w.AddPair(alias,address,key,len(w.accounts))
+}
+

@@ -35,6 +35,7 @@ type WalletImpl interface {
 	List() []Account
 	Save() error
 	NewPair(alias string) error
+	ImportKey(alias string, address types.Address, key ed25519.PrivateKey) error
 }
 
 /*
@@ -74,6 +75,15 @@ LuckyNewPair creates keys pair. It panics if failed to unlock
 */
 func (wal Wallet) LuckyNewPair(alias string) {
 	if err := wal.NewPair(alias); err != nil {
+		panic(fu.Panic(err, 2))
+	}
+}
+
+/*
+LuckyImportKey imports key to the wallet. It panics if failed to unlock
+*/
+func (wal Wallet) LuckyImportKey(alias string, address types.Address, key ed25519.PrivateKey) {
+	if err := wal.ImportKey(alias, address, key); err != nil {
 		panic(fu.Panic(err, 2))
 	}
 }

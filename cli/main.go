@@ -52,6 +52,8 @@ func CLI() *cobra.Command {
 		cmdTextSign,
 		cmdCoinbase,
 		cmdNew,
+		cmdExport,
+		cmdImport,
 	)
 	return mainCmd
 }
@@ -111,7 +113,7 @@ func loadWallet(canBeEmpty ...bool) (w []wallet.Wallet) {
 		} else {
 			if err := filepath.Walk(*optWalletDir, func(path string, info os.FileInfo, err error) error {
 				base := filepath.Base(path)
-				if strings.HasPrefix(base, "my_wallet_") {
+				if strings.HasPrefix(base, "my_wallet_") && strings.HasSuffix(base, ".json") {
 					verbose.Printfln("opening wallet file '%v'", base)
 					wal, err := modern.Wallet{Path: path}.Load()
 					if err == nil {

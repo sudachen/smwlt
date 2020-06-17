@@ -137,3 +137,8 @@ func (w *legacyWallet) NewPair(alias string) (err error) {
 	}})
 	return
 }
+
+func (w *legacyWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
+	return
+}
+
