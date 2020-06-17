@@ -9,8 +9,8 @@ import (
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
+	"io"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -118,47 +118,26 @@ func (*legacyWallet) Unlock(string) error {
 	return nil
 }
 
+/*
+Save implements WalletImpl interface
+*/
 func (w *legacyWallet) Save() (err error) {
-	type keys struct {
-		PubKey  string `json:"pubkey"`
-		PrivKey string `json:"privkey"`
-	}
-	m := map[string]keys{}
-	for _, a := range w.accounts {
-		m[a.Name] = keys{a.Address.Hex(), hex.EncodeToString(a.Private[:])}
-	}
-
-	if _, e := os.Stat(w.path); e == nil {
-		_ = os.Remove(w.path + "~")
-		if err = os.Rename(w.path, w.path+"~"); err != nil {
-			return fu.Wrapf(err, "failed to backup wallet: %v", err.Error())
+	return fu.SaveWithBackup(w.path, func(wr io.Writer) error {
+		type keys struct {
+			PubKey  string `json:"pubkey"`
+			PrivKey string `json:"privkey"`
 		}
-	}
-
-	defer func() {
-		if err != nil {
-			if _, e := os.Stat(w.path); e != os.ErrNotExist {
-				_ = os.Rename(w.path+"~", w.path)
-			}
+		m := map[string]keys{}
+		for _, a := range w.accounts {
+			m[a.Name] = keys{a.Address.Hex(), hex.EncodeToString(a.Private[:])}
 		}
-	}()
-
-	_ = os.MkdirAll(filepath.Dir(w.path), 0755)
-	f, err := os.Create(w.path)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	if err = json.NewEncoder(f).Encode(&m); err != nil {
-		return
-	}
-	if err = f.Close(); err != nil {
-		return
-	}
-	_ = os.Remove(w.path + "~")
-	return
+		return json.NewEncoder(wr).Encode(&m)
+	})
 }
 
+/*
+NewPair implements WalletImpl interface
+*/
 func (w *legacyWallet) NewPair(alias string) (err error) {
 	if _, exists := w.Lookup(alias); exists {
 		return fmt.Errorf("account '%v' already exists")
@@ -176,6 +155,9 @@ func (w *legacyWallet) NewPair(alias string) (err error) {
 	return
 }
 
+/*
+ImportKey implements WalletImpl interface
+*/
 func (w *legacyWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
 	w.accounts = append(w.accounts, account{wallet.Account{
 		Name:    alias,

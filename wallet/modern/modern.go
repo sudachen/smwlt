@@ -2,8 +2,6 @@ package modern
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
 	cryptorand "crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
@@ -15,8 +13,8 @@ import (
 	"github.com/sudachen/smwlt/wallet"
 	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/pbkdf2"
+	"io"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -44,14 +42,6 @@ func onpanic(err *error) {
 		}
 		panic(p)
 	}
-}
-
-func NewMnemonic() (mnemonic string, err error) {
-	bs := make([]byte, 16)
-	if _, err = cryptorand.Read(bs); err != nil {
-		return
-	}
-	return bip39.NewMnemonic(bs)
 }
 
 func now() string {
@@ -162,16 +152,9 @@ func (w *modernWallet) Unlock(password string) (err error) {
 	bs := w.content.Map("crypto").Value("cipherText").HexBytes()
 	salt := fu.Fne(w.content.Map("meta").Map("meta").Value("salt").String(), defaultSalt)
 	w.key = pbkdf2.Key([]byte(password), []byte(salt), 1000000, 32, sha512.New)
-	block, err := aes.NewCipher(w.key)
-	if err != nil {
-		return
-	}
-	iv := [16]byte{}
-	iv[15] = 5
-	plane := make([]byte, len(bs))
-	cipher.NewCTR(block, iv[:]).XORKeyStream(plane, bs)
+	text, err := fu.AesXor(w.key, bs)
 	m := fu.JsonMap{Val: map[string]interface{}{}}
-	if err = m.Decode(bytes.NewBuffer(plane)); err != nil {
+	if err = m.Decode(bytes.NewBuffer(text)); err != nil {
 		return
 	}
 	for _, x := range m.List("accounts").Maps() {
@@ -191,39 +174,18 @@ func (w *modernWallet) Unlock(password string) (err error) {
 	return
 }
 
+/*
+Save implements WalletImpl interface
+*/
 func (w *modernWallet) Save() (err error) {
-
-	if _, e := os.Stat(w.path); e == nil {
-		_ = os.Remove(w.path + "~")
-		if err = os.Rename(w.path, w.path+"~"); err != nil {
-			return fu.Wrapf(err, "failed to backup wallet: %v", err.Error())
-		}
-	}
-
-	defer func() {
-		if err != nil {
-			if _, e := os.Stat(w.path); e != os.ErrNotExist {
-				_ = os.Rename(w.path+"~", w.path)
-			}
-		}
-	}()
-
-	_ = os.MkdirAll(filepath.Dir(w.path), 0755)
-	f, err := os.Create(w.path)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	if err = w.content.Encode(f); err != nil {
-		return
-	}
-	if err = f.Close(); err != nil {
-		return
-	}
-	_ = os.Remove(w.path + "~")
-	return
+	return fu.SaveWithBackup(w.path, func(wr io.Writer) error {
+		return w.content.Encode(wr)
+	})
 }
 
+/*
+NewPair implements WalletImpl interface
+*/
 func (w *modernWallet) NewPair(alias string) (err error) {
 	no := len(w.accounts)
 	seed := bip39.NewSeed(w.secret.Value("mnemonic").String(), "")
@@ -233,12 +195,16 @@ func (w *modernWallet) NewPair(alias string) (err error) {
 	return w.AddPair(alias, types.BytesToAddress(pub), key, no)
 }
 
+/*
+AddPair adds predefined keys pair to the wallet
+*/
 func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.PrivateKey, index int) (err error) {
 	a := wallet.Account{alias, address, key, wallet.Wallet{w}}
 
 	/*
-		It does not write accounts list because wallet records can contains additional fields not parsed on load.
-		So this code may work even if some parts of wallet format will changed
+			It does not write accounts list because wallet can contains additional fields not parsed on load,
+		       instead it modifies and writes the JsonMap object of json representation.
+			So this code may work even if some parts of wallet format will changed
 	*/
 
 	accounts := w.secret.Val["accounts"].([]interface{})
@@ -254,19 +220,26 @@ func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.
 	if err = w.secret.Encode(&bf); err != nil {
 		return
 	}
-	block, err := aes.NewCipher(w.key)
-	if err != nil {
-		return
-	}
-	iv := [16]byte{}
-	iv[15] = 5
-	crypted := make([]byte, bf.Len())
-	cipher.NewCTR(block, iv[:]).XORKeyStream(crypted, bf.Bytes())
-	w.content.Map("crypto").Val["cipherText"] = hex.EncodeToString(crypted)
+	text, err := fu.AesXor(w.key, bf.Bytes())
+	w.content.Map("crypto").Val["cipherText"] = hex.EncodeToString(text)
 
 	return
 }
 
+/*
+ImportKey implements WalletImpl interface
+*/
 func (w *modernWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
 	return w.AddPair(alias, address, key, len(w.accounts))
+}
+
+/*
+NewMnemonic generates new wallet mnemonic
+*/
+func NewMnemonic() (mnemonic string, err error) {
+	bs := make([]byte, 16)
+	if _, err = cryptorand.Read(bs); err != nil {
+		return
+	}
+	return bip39.NewMnemonic(bs)
 }
