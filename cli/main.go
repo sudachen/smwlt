@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
 	api "github.com/sudachen/smwlt/node/api.v1"
-	"github.com/sudachen/smwlt/verbose"
 	"github.com/sudachen/smwlt/wallet"
 	"github.com/sudachen/smwlt/wallet/legacy"
 	"github.com/sudachen/smwlt/wallet/modern"
@@ -40,9 +39,9 @@ var optEndpoint = mainCmd.PersistentFlags().StringP("endpoint", "e", api.Default
 var optYes = mainCmd.PersistentFlags().BoolP("yes", "y", false, "auto confirm")
 var OptTrace = mainCmd.PersistentFlags().BoolP("trace", "x", false, "backtrace on panic")
 
-func CLI() *cobra.Command {
+func init() {
 	mainCmd.PersistentFlags().BoolP("help", "h", false, "help for info")
-	verbose.VerboseOptP = mainCmd.PersistentFlags().BoolP("verbose", "v", false, "be verbose")
+	fu.VerboseOptP = mainCmd.PersistentFlags().BoolP("verbose", "v", false, "be verbose")
 	mainCmd.AddCommand(
 		cmdInfo,
 		cmdSend,
@@ -55,6 +54,9 @@ func CLI() *cobra.Command {
 		cmdExport,
 		cmdImport,
 	)
+}
+
+func CLI() *cobra.Command {
 	return mainCmd
 }
 
@@ -114,7 +116,7 @@ func loadWallet(canBeEmpty ...bool) (w []wallet.Wallet) {
 			if err := filepath.Walk(*optWalletDir, func(path string, info os.FileInfo, err error) error {
 				base := filepath.Base(path)
 				if strings.HasPrefix(base, "my_wallet_") && strings.HasSuffix(base, ".json") {
-					verbose.Printfln("opening wallet file '%v'", base)
+					fu.Verbose("opening wallet file '%v'", base)
 					wal, err := modern.Wallet{Path: path}.Load()
 					if err == nil {
 						if *optWalletName == "" ||
@@ -122,7 +124,7 @@ func loadWallet(canBeEmpty ...bool) (w []wallet.Wallet) {
 							wx = append(wx, wal)
 						}
 					} else {
-						verbose.Printfln("failed to open with error: %v", err.Error())
+						fu.Verbose("failed to open with error: %v", err.Error())
 					}
 				}
 				return nil
@@ -217,7 +219,7 @@ type Client struct {
 
 func newClient() Client {
 	return Client{
-		ClientAgent:     api.Client{Endpoint: *optEndpoint, Verbose: verbose.Printfln}.New(),
+		ClientAgent:     api.Client{Endpoint: *optEndpoint, Verbose: fu.Verbose}.New(),
 		DefaultGasLimit: api.DefaultGasLimit,
 		DefaultFee:      api.DefaultFee,
 	}
