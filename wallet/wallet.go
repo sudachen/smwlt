@@ -7,7 +7,6 @@ import (
 	"github.com/sudachen/smwlt/fu"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 /*
@@ -16,7 +15,6 @@ Account structure for the wallet interface
 type Account struct {
 	Name    string
 	Address types.Address
-	Created time.Time
 	Private ed25519.PrivateKey
 	Wallet  Wallet
 }
@@ -35,6 +33,8 @@ type WalletImpl interface {
 	Unlock(key string) error
 	Lookup(alias string) (Account, bool)
 	List() []Account
+	Save() error
+	NewPair(alias string) error
 }
 
 /*
@@ -45,7 +45,7 @@ type Wallet struct {
 }
 
 /*
-Unlock wallet. It panics if failed to unlock
+LuckyUnlock unlocks wallet. It panics if failed to unlock
 */
 func (wal Wallet) LuckyUnlock(key string) {
 	if err := wal.Unlock(key); err != nil {
@@ -58,6 +58,24 @@ DisplayName retruns composition of wallet name and its file
 */
 func (wal Wallet) DisplayName() string {
 	return fmt.Sprintf("%v(%v)", wal.Name(), filepath.Base(wal.Path()))
+}
+
+/*
+LuckySave saves wallet. It panics if failed to unlock
+*/
+func (wal Wallet) LuckySave() {
+	if err := wal.Save(); err != nil {
+		panic(fu.Panic(err, 2))
+	}
+}
+
+/*
+LuckyNewPair creates keys pair. It panics if failed to unlock
+*/
+func (wal Wallet) LuckyNewPair(alias string) {
+	if err := wal.NewPair(alias); err != nil {
+		panic(fu.Panic(err, 2))
+	}
 }
 
 /*

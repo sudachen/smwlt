@@ -21,6 +21,13 @@ func (w Wallet) Load() (wal wallet.Wallet, err error) {
 }
 
 /*
+New creates new wallet
+*/
+func (w Wallet) New(password, mnemonic string) (wal wallet.Wallet) {
+	return fill(w.Path, w.Name, password, mnemonic)
+}
+
+/*
 LuckyLoad loads wallet content from the file. It panics on error
 */
 func (w Wallet) LuckyLoad() (wal wallet.Wallet) {

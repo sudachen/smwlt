@@ -38,6 +38,10 @@ func (m *JsonMap) Decode(reader io.Reader) error {
 	return json.NewDecoder(reader).Decode(&m.Val)
 }
 
+func (m *JsonMap) Encode(writer io.Writer) error {
+	return json.NewEncoder(writer).Encode(&m.Val)
+}
+
 func (m JsonMap) Map(n string) JsonMap {
 	next := m.path.Next(n)
 	if v, ok := m.Val[n]; ok {
@@ -54,7 +58,11 @@ func (m JsonMap) Len() int {
 }
 
 func (m JsonMap) Value(n string) JsonValue {
-	return JsonValue{m.Val[n], m.path.Next(n)}
+	next := m.path.Next(n)
+	if v, ok := m.Val[n]; ok {
+		return JsonValue{v, next}
+	}
+	return JsonValue{"", next}
 }
 
 func (m JsonMap) List(n string) JsonList {

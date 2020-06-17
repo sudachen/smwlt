@@ -10,9 +10,15 @@ import (
 	"github.com/sudachen/smwlt/wallet"
 	"github.com/sudachen/smwlt/wallet/legacy"
 	"github.com/sudachen/smwlt/wallet/modern"
+	"golang.org/x/crypto/ssh/terminal"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
+	"syscall"
+	"time"
 )
 
 const MajorVersion = 1
@@ -34,7 +40,7 @@ var optEndpoint = mainCmd.PersistentFlags().StringP("endpoint", "e", api.Default
 var optYes = mainCmd.PersistentFlags().BoolP("yes", "y", false, "auto confirm")
 var OptTrace = mainCmd.PersistentFlags().BoolP("trace", "x", false, "backtrace on panic")
 
-func Main() {
+func CLI() *cobra.Command {
 	mainCmd.PersistentFlags().BoolP("help", "h", false, "help for info")
 	verbose.VerboseOptP = mainCmd.PersistentFlags().BoolP("verbose", "v", false, "be verbose")
 	mainCmd.AddCommand(
@@ -47,8 +53,20 @@ func Main() {
 		cmdCoinbase,
 		cmdNew,
 	)
+	return mainCmd
+}
 
-	if err := mainCmd.Execute(); err != nil {
+func Main() {
+
+	cst, _ := terminal.GetState(int(os.Stdin.Fd()))
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-c
+		terminal.Restore(int(os.Stdin.Fd()), cst)
+		os.Exit(1)
+	}()
+	if err := CLI().Execute(); err != nil {
 		panic(fu.Panic(err, 1))
 	}
 }
@@ -77,7 +95,7 @@ func unlock(w wallet.Wallet, passw *[]string, interactive bool) bool {
 	return false
 }
 
-func loadWallet() (w []wallet.Wallet) {
+func loadWallet(canBeEmpty ...bool) (w []wallet.Wallet) {
 	if *optLegacy {
 		w = []wallet.Wallet{legacy.Wallet{Path: *optWalletFile}.LuckyLoad()}
 		// unencrypted
@@ -115,8 +133,75 @@ func loadWallet() (w []wallet.Wallet) {
 				w = append(w, x)
 			}
 		}
-		if len(w) == 0 && *optPassword != "" {
+		if len(w) == 0 && *optPassword != "" && !fu.Fnf(canBeEmpty...) {
 			panic(fu.Panic(fmt.Errorf("there is nothing to unlock, wrong password(?)")))
+		}
+	}
+	return
+}
+
+func exist(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
+func loadOrCreateWallet() (w []wallet.Wallet) {
+	if *optWalletFile == "" || exist(*optWalletFile) {
+		w = loadWallet(true)
+	}
+	if len(w) == 0 {
+		if *optLegacy {
+			w = []wallet.Wallet{legacy.Wallet{*optWalletFile}.New()}
+		} else {
+			if *optWalletName == "" {
+				panic(fu.Panic(fmt.Errorf("you must specify new wallet name")))
+			}
+			p := *optPassword
+			for p == "" {
+				p = prompter.Password("Enter new wallet password")
+				if p != "" {
+					if p == prompter.Password("Verify new wallet password") {
+						break
+					}
+					fmt.Println("Does not match")
+				}
+			}
+			path := *optWalletFile
+			if path == "" {
+				maxNo := -1
+				rx, _ := regexp.Compile("my_wallet_(\\d+)_.*\\.json")
+				if err := filepath.Walk(*optWalletDir, func(path string, info os.FileInfo, err error) error {
+					base := filepath.Base(path)
+					if v := rx.FindString(base); v != "" {
+						no, _ := strconv.Atoi(v)
+						if no > maxNo {
+							maxNo = no
+						}
+					}
+					return nil
+				}); err != nil {
+					panic(fu.Panic(err))
+				}
+				path = fmt.Sprintf("my_wallet_%d_%s.json", maxNo+1, time.Now().UTC().Format("2006-01-02T15-04-05.000")+"Z")
+			}
+			if dir, _ := filepath.Split(path); dir == "" {
+				path = filepath.Join(*optWalletDir, path)
+			}
+			mnemonic, err := modern.NewMnemonic()
+			if err != nil {
+				panic(fu.Panic(fu.Wrapf(err, "failed to create new mnemonic: %v", err.Error())))
+			}
+			w = []wallet.Wallet{modern.Wallet{path, *optWalletName}.New(p, mnemonic)}
+			fmt.Print("New wallet mnemonic:")
+			for i, x := range strings.Split(mnemonic, " ") {
+				if i%4 == 0 {
+					fmt.Print("\n\t")
+				}
+				fmt.Printf("%-20s", x)
+			}
+			fmt.Println("")
 		}
 	}
 	return

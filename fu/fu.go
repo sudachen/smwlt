@@ -37,6 +37,16 @@ func Opti(v int, a ...int) int {
 }
 
 /*
+Ifs returns string selected by logical expression
+*/
+func Ifs(expr bool, ontrue, onfalse string) string {
+	if expr {
+		return ontrue
+	}
+	return onfalse
+}
+
+/*
 Option returns first option of the required type
 */
 func Option(t interface{}, o interface{}) reflect.Value {

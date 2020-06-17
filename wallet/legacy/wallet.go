@@ -30,6 +30,13 @@ func (w Wallet) Load() (wal wallet.Wallet, err error) {
 }
 
 /*
+New creates new wallet
+*/
+func (w Wallet) New() (wal wallet.Wallet) {
+	return fill(fu.Fne(w.Path, DefaultAccountsJson))
+}
+
+/*
 LuckyLoad loads wallet content from the file. It panics on error
 */
 func (w Wallet) LuckyLoad() (wal wallet.Wallet) {

@@ -1,8 +1,11 @@
 package legacy
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
@@ -18,6 +21,14 @@ type account struct {
 type legacyWallet struct {
 	accounts []account
 	path     string
+}
+
+func fill(path string) (wal wallet.Wallet) {
+	return wallet.Wallet{
+		&legacyWallet{
+			path: path,
+		},
+	}
 }
 
 func load(path string) (wal wallet.Wallet, err error) {
@@ -104,4 +115,25 @@ Unlock implements WalletImpl interface
 func (*legacyWallet) Unlock(string) error {
 	// unencrypted
 	return nil
+}
+
+func (w *legacyWallet) Save() (err error) {
+	return
+}
+
+func (w *legacyWallet) NewPair(alias string) (err error) {
+	if _, exists := w.Lookup(alias); exists {
+		return fmt.Errorf("account '%v' already exists")
+	}
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return fu.Wrapf(err, "cannot create account: %s", err.Error())
+	}
+	w.accounts = append(w.accounts, account{wallet.Account{
+		Name:    alias,
+		Address: types.BytesToAddress(pub[:]),
+		Private: priv,
+		Wallet:  wallet.Wallet{w},
+	}})
+	return
 }

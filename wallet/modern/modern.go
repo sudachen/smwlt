@@ -4,16 +4,21 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	cryptorand "crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
+	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/pbkdf2"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 type modernWallet struct {
@@ -39,6 +44,43 @@ func onpanic(err *error) {
 		}
 		panic(p)
 	}
+}
+
+func NewMnemonic() (mnemonic string, err error) {
+	bs := make([]byte, 16)
+	if _, err = cryptorand.Read(bs); err != nil {
+		return
+	}
+	return bip39.NewMnemonic(bs)
+}
+
+func now() string {
+	return time.Now().UTC().Format("2006-01-02T15-04-05.000") + "Z"
+}
+
+func fill(path, name, password, mnemonic string) (wal wallet.Wallet) {
+	modern := &modernWallet{name: name, path: path}
+	modern.content = fu.JsonMap{Val: map[string]interface{}{
+		"meta": map[string]interface{}{
+			"displayName": name,
+			"created":     now(),
+			"netId":       int(0),
+			"meta": map[string]interface{}{
+				"salt": defaultSalt,
+			},
+		},
+		"crypto": map[string]interface{}{
+			"cipher":     "AES-128-CTR",
+			"cipherText": "",
+		},
+		"contacts": []map[string]interface{}{},
+	}}
+	modern.secret = fu.JsonMap{Val: map[string]interface{}{
+		"mnemonic": mnemonic,
+		"accounts": []map[string]interface{}{},
+	}}
+	modern.key = pbkdf2.Key([]byte(password), []byte(defaultSalt), 1000000, 32, sha512.New)
+	return wallet.Wallet{modern}
 }
 
 func load(path string) (wal wallet.Wallet, err error) {
@@ -146,5 +188,74 @@ func (w *modernWallet) Unlock(password string) (err error) {
 		w.accounts = append(w.accounts, a)
 	}
 	w.secret = m
+	return
+}
+
+func (w *modernWallet) Save() (err error) {
+	if _, e := os.Stat(w.path); e == nil {
+		_ = os.Remove(w.path + "~")
+		if err = os.Rename(w.path, w.path+"~"); err != nil {
+			return fu.Wrapf(err, "failed to backup wallet: %v", err.Error())
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			if _, e := os.Stat(w.path); e != os.ErrNotExist {
+				_ = os.Rename(w.path+"~", w.path)
+			}
+		}
+	}()
+
+	_ = os.MkdirAll(filepath.Dir(w.path), 0755)
+	f, err := os.Create(w.path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	if err = w.content.Encode(f); err != nil {
+		return
+	}
+	if err = f.Close(); err != nil {
+		return
+	}
+	return
+}
+
+func (w *modernWallet) NewPair(alias string) (err error) {
+	no := len(w.accounts)
+	seed := bip39.NewSeed(w.secret.Value("mnemonic").String(), "")
+	key := ed25519.NewDerivedKeyFromSeed(seed[:32], uint64(no), []byte(defaultSalt))
+	pub := key.Public().(ed25519.PublicKey)[:]
+	a := wallet.Account{alias, types.BytesToAddress(pub), key, wallet.Wallet{w}}
+
+	/*
+		It does not write accounts list because wallet records can contains additional fields not parsed on load.
+		So this code may work even if some parts of wallet format will changed
+	*/
+
+	accounts := w.secret.Val["accounts"].([]map[string]interface{})
+	w.secret.Val["accounts"] = append(accounts, map[string]interface{}{
+		"displayName": alias,
+		"created":     now(),
+		"path":        fmt.Sprintf("0/0/%d", no),
+		"publicKey":   a.Address.Hex(),
+		"secretKey":   hex.EncodeToString(key[:]),
+	})
+
+	bf := bytes.Buffer{}
+	if err = w.secret.Encode(&bf); err != nil {
+		return
+	}
+	block, err := aes.NewCipher(w.key)
+	if err != nil {
+		return
+	}
+	iv := [16]byte{}
+	iv[15] = 5
+	crypted := make([]byte, bf.Len())
+	cipher.NewCTR(block, iv[:]).XORKeyStream(crypted, bf.Bytes())
+	w.content.Map("crypto").Val["cipherText"] = hex.EncodeToString(crypted)
+
 	return
 }
