@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/wallet"
+	"sort"
 	"strings"
 )
 
@@ -39,8 +40,13 @@ var cmdInfo = &cobra.Command{
 					m[a.Name] = append(m[a.Name], a)
 				}
 			}
-			for _, accs := range m {
-				for _, a := range accs {
+			names := make([]string, 0, len(m))
+			for k := range m {
+				names = append(names, k)
+			}
+			sort.Strings(names)
+			for _, n := range names {
+				for _, a := range m[n] {
 					nfo, err := c.GetAccountInfo(a.Address)
 					if err != nil {
 						fmt.Printf("Account %v [%v]:\n\t%v\n",

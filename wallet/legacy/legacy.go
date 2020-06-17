@@ -10,6 +10,7 @@ import (
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -118,6 +119,43 @@ func (*legacyWallet) Unlock(string) error {
 }
 
 func (w *legacyWallet) Save() (err error) {
+	type keys struct {
+		PubKey  string `json:"pubkey"`
+		PrivKey string `json:"privkey"`
+	}
+	m := map[string]keys{}
+	for _, a := range w.accounts {
+		m[a.Name] = keys{a.Address.Hex(), hex.EncodeToString(a.Private[:])}
+	}
+
+	if _, e := os.Stat(w.path); e == nil {
+		_ = os.Remove(w.path + "~")
+		if err = os.Rename(w.path, w.path+"~"); err != nil {
+			return fu.Wrapf(err, "failed to backup wallet: %v", err.Error())
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			if _, e := os.Stat(w.path); e != os.ErrNotExist {
+				_ = os.Rename(w.path+"~", w.path)
+			}
+		}
+	}()
+
+	_ = os.MkdirAll(filepath.Dir(w.path), 0755)
+	f, err := os.Create(w.path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	if err = json.NewEncoder(f).Encode(&m); err != nil {
+		return
+	}
+	if err = f.Close(); err != nil {
+		return
+	}
+	_ = os.Remove(w.path + "~")
 	return
 }
 
@@ -139,6 +177,11 @@ func (w *legacyWallet) NewPair(alias string) (err error) {
 }
 
 func (w *legacyWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
+	w.accounts = append(w.accounts, account{wallet.Account{
+		Name:    alias,
+		Address: address,
+		Private: key,
+		Wallet:  wallet.Wallet{w},
+	}})
 	return
 }
-

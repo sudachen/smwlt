@@ -234,7 +234,7 @@ func (w *modernWallet) NewPair(alias string) (err error) {
 }
 
 func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.PrivateKey, index int) (err error) {
-	a := wallet.Account{ alias, address, key, wallet.Wallet{w}}
+	a := wallet.Account{alias, address, key, wallet.Wallet{w}}
 
 	/*
 		It does not write accounts list because wallet records can contains additional fields not parsed on load.
@@ -268,6 +268,5 @@ func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.
 }
 
 func (w *modernWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
-	return w.AddPair(alias,address,key,len(w.accounts))
+	return w.AddPair(alias, address, key, len(w.accounts))
 }
-

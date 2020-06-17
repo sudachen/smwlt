@@ -29,8 +29,9 @@ var cmdImport = &cobra.Command{
 		if exists {
 			panic(fu.Panic(fmt.Errorf("Account '%v' already exists", a.Name)))
 		}
-		bs,err := hex.DecodeString(args[1])
-		if err != nil {}
+		bs, err := hex.DecodeString(args[1])
+		if err != nil {
+		}
 		key := ed25519.PrivateKey(bs)
 		address := types.BytesToAddress(key.Public().(ed25519.PublicKey)[:])
 		fmt.Printf("Account %v [for import]:\n"+strings.Repeat("\t"+keyValueFormat, 1),
@@ -39,12 +40,14 @@ var cmdImport = &cobra.Command{
 		)
 		yes := *optYes
 		if !yes {
-			yes = prompter.YN(fmt.Sprintf("Import '%v' to the wallet",args[0]),false)
+			yes = prompter.YN(fmt.Sprintf("Import '%v' to the wallet", args[0]), false)
 		}
 		if yes {
-			w[0].LuckyImportKey(args[0],address,key)
+			w[0].LuckyImportKey(args[0], address, key)
 			w[0].LuckySave()
+			fmt.Println("Successfully imported")
+		} else {
+			fmt.Println("Cancelled")
 		}
 	},
 }
-

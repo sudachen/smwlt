@@ -17,4 +17,3 @@ var cmdExport = &cobra.Command{
 		fmt.Println(util.Bytes2Hex(acc.Private))
 	},
 }
-
