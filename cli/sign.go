@@ -2,11 +2,11 @@ package cli
 
 import (
 	"encoding/hex"
-	"fmt"
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/util"
 	"github.com/spf13/cobra"
-	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/stdio"
 	"github.com/sudachen/smwlt/wallet"
 	"strings"
 )
@@ -21,10 +21,10 @@ var cmdHexSign = &cobra.Command{
 		a := strings.TrimPrefix(args[1], "0x")
 		msg, err := hex.DecodeString(a)
 		if err != nil {
-			panic(fu.Panic(fmt.Errorf("failed to decode msg hex string: %v", err.Error()), 1))
+			panic(errstr.Format(0, "failed to decode msg hex string: %v", err.Error()))
 		}
 		signature := ed25519.Sign2(acc.Private, msg)
-		fmt.Println(util.Bytes2Hex(signature))
+		stdio.Println(util.Bytes2Hex(signature))
 	},
 }
 
@@ -36,6 +36,6 @@ var cmdTextSign = &cobra.Command{
 		w := loadWallet()
 		acc := wallet.LuckyLookup(args[0], w...)
 		signature := ed25519.Sign2(acc.Private, []byte(args[1]))
-		fmt.Println(util.Bytes2Hex(signature))
+		stdio.Println(util.Bytes2Hex(signature))
 	},
 }

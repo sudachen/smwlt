@@ -2,9 +2,10 @@ package cli
 
 import (
 	"fmt"
-	"github.com/Songmu/prompter"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spf13/cobra"
-	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/stdio"
 	"github.com/sudachen/smwlt/wallet"
 )
 
@@ -18,7 +19,7 @@ var cmdCoinbase = &cobra.Command{
 		c := newClient()
 		nfo := c.LuckyMiningStats()
 		if nfo.Coinbase == acc.Address {
-			fmt.Printf("Node coinbase already is %v\n", acc.Address.Hex())
+			stdio.Printf("Node coinbase already is %v\n", acc.Address.Hex())
 			return
 		}
 		ok := *optYes
@@ -26,14 +27,14 @@ var cmdCoinbase = &cobra.Command{
 			ok = prompter.YN(fmt.Sprintf("Set node coinbase to %v", acc.Address.Hex()), false)
 		}
 		if !ok {
-			fmt.Println("Cancelled")
+			stdio.Println("Cancelled")
 			return
 		}
 		c.LuckyCoinbase(acc.Address)
 		nfo = c.LuckyMiningStats()
 		if nfo.Coinbase != acc.Address {
-			panic(fu.Panic(fmt.Errorf("oops, coinbase is not updated"), 2))
+			panic(errstr.Format(1, "oops, coinbase is not updated"))
 		}
-		fmt.Printf("Succeeded, coinbase is %v now\n", nfo.Coinbase.Hex())
+		stdio.Printf("Succeeded, coinbase is %v now\n", nfo.Coinbase.Hex())
 	},
 }

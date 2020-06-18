@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"github.com/Songmu/prompter"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/stdio"
 	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"github.com/sudachen/smwlt/wallet/legacy"
@@ -69,7 +71,7 @@ func Main() {
 		os.Exit(1)
 	}()
 	if err := CLI().Execute(); err != nil {
-		panic(fu.Panic(err, 1))
+		panic(errstr.Frame(0, err))
 	}
 }
 
@@ -80,18 +82,18 @@ func unlock(w wallet.Wallet, passw *[]string, interactive bool) bool {
 		}
 	}
 	if interactive {
-		fmt.Printf("Unlocking wallet %v\n", w.DisplayName())
+		stdio.Printf("Unlocking wallet %v\n", w.DisplayName())
 		p := prompter.Password("Enter password [leave empty to skip]")
 		if p != "" {
 			if e := w.Unlock(p); e == nil {
-				fmt.Println("Wallet unlocked")
+				stdio.Println("Wallet unlocked")
 				*passw = append(*passw, p)
 				return true
 			} else {
-				fmt.Println("Wrong password!")
+				stdio.Println("Wrong password!")
 			}
 		} else {
-			fmt.Println("Wallet skipped")
+			stdio.Println("Wallet skipped")
 		}
 	}
 	return false
@@ -127,7 +129,7 @@ func loadWallet(canBeEmpty ...bool) (w []wallet.Wallet) {
 				}
 				return nil
 			}); err != nil {
-				panic(fu.Panic(err))
+				panic(err)
 			}
 		}
 		for _, x := range wx {
@@ -136,7 +138,7 @@ func loadWallet(canBeEmpty ...bool) (w []wallet.Wallet) {
 			}
 		}
 		if len(w) == 0 && *optPassword != "" && !fu.Fnf(canBeEmpty...) {
-			panic(fu.Panic(fmt.Errorf("there is nothing to unlock, wrong password(?)")))
+			panic(errstr.New(0, "there is nothing to unlock, wrong password(?)"))
 		}
 	}
 	return
@@ -158,7 +160,7 @@ func loadOrCreateWallet() (w []wallet.Wallet) {
 			w = []wallet.Wallet{legacy.Wallet{*optWalletFile}.New()}
 		} else {
 			if *optWalletName == "" {
-				panic(fu.Panic(fmt.Errorf("you must specify new wallet name")))
+				panic(errstr.Format(0,"you must specify new wallet name"))
 			}
 			p := *optPassword
 			for p == "" {
@@ -167,7 +169,7 @@ func loadOrCreateWallet() (w []wallet.Wallet) {
 					if p == prompter.Password("Verify new wallet password") {
 						break
 					}
-					fmt.Println("Does not match")
+					stdio.Println("Does not match")
 				}
 			}
 			path := *optWalletFile
@@ -184,17 +186,17 @@ func loadOrCreateWallet() (w []wallet.Wallet) {
 			}
 			mnemonic, err := wallet.NewMnemonic()
 			if err != nil {
-				panic(fu.Panic(fu.Wrapf(err, "failed to create new mnemonic: %v", err.Error())))
+				panic(errstr.Wrapf(0, err, "failed to create new mnemonic: %v", err.Error()))
 			}
 			w = []wallet.Wallet{modern.Wallet{path, *optWalletName}.New(p, mnemonic)}
-			fmt.Print("New wallet mnemonic:")
+			stdio.Print("New wallet mnemonic:")
 			for i, x := range strings.Split(mnemonic, " ") {
 				if i%4 == 0 {
-					fmt.Print("\n\t")
+					stdio.Print("\n\t")
 				}
-				fmt.Printf("%-20s", x)
+				stdio.Printf("%-20s", x)
 			}
-			fmt.Println("")
+			stdio.Println("")
 		}
 	}
 	return

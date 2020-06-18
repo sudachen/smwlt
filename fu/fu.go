@@ -1,3 +1,6 @@
+/*
+Package fu implements internal functional utilities
+*/
 package fu
 
 import "reflect"

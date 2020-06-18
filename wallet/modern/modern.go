@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"crypto/sha512"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
 	"github.com/sudachen/smwlt/wallet"
 	"golang.org/x/crypto/pbkdf2"
 	"io"
@@ -33,12 +33,11 @@ type modernWallet struct {
 
 func onpanic(err *error) {
 	if p := recover(); p != nil {
-		e := fu.PanicError(p)
-		if errors.Is(e, fu.JsonTypeError) {
-			*err = fu.Wrapf(e, "wallet is broken: %v", e.Error())
-			return
+		if e := errstr.ErrorOf(p); e != nil {
+			*err = errstr.Wrapf(2, e, "wallet is broken: %v", e.Error())
+		} else {
+			*err = errstr.New(2, "wallet is broken")
 		}
-		panic(p)
 	}
 }
 
@@ -160,11 +159,11 @@ func (w *modernWallet) Unlock(password string) (err error) {
 		a.Name = x.Value("displayName").String()
 		pubk := x.Value("publicKey").String()
 		if a.Address, err = types.StringToAddress(pubk); err != nil {
-			return fu.Wrap(err, "failed to decode public key")
+			return errstr.Wrap(1, err, "failed to decode public key")
 		}
 		prvk := x.Value("secretKey").String()
 		if a.Private, err = hex.DecodeString(prvk); err != nil {
-			return fu.Wrap(err, "failed to decode private key")
+			return errstr.Wrap(1, err, "failed to decode private key")
 		}
 		w.accounts = append(w.accounts, a)
 	}

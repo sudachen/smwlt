@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sudachen/smwlt/fu/errstr"
 	"io"
 )
 
@@ -48,7 +49,7 @@ func (m JsonMap) Map(n string) JsonMap {
 		if q, ok := v.(map[string]interface{}); ok {
 			return JsonMap{q, next}
 		}
-		panic(Panic(Wrapf(JsonTypeError, "value '%v' is not a map", next), 2))
+		panic(errstr.Wrapf(1, JsonTypeError, "value '%v' is not a map", next))
 	}
 	return JsonMap{map[string]interface{}{}, next}
 }
@@ -71,7 +72,7 @@ func (m JsonMap) List(n string) JsonList {
 		if q, ok := v.([]interface{}); ok {
 			return JsonList{q, next}
 		}
-		panic(Panic(Wrapf(JsonTypeError, "value '%v' is not a list", next), 2))
+		panic(errstr.Wrapf(1,JsonTypeError, "value '%v' is not a list", next))
 	}
 	return JsonList{[]interface{}{}, next}
 }
@@ -91,7 +92,7 @@ func (l JsonList) Maps() []JsonMap {
 		if x, ok := v.(map[string]interface{}); ok {
 			r[i] = JsonMap{x, next}
 		} else {
-			panic(Panic(Wrapf(JsonTypeError, "value '%v' is not a map", next), 2))
+			panic(errstr.Wrapf(1,JsonTypeError, "value '%v' is not a map", next))
 		}
 	}
 	return r
@@ -101,7 +102,7 @@ func (v JsonValue) String() string {
 	if q, ok := v.Val.(string); ok {
 		return q
 	}
-	panic(Panic(Wrapf(JsonTypeError, "value '%v' is not a string", v.path), 2))
+	panic(errstr.Wrapf(1, JsonTypeError, "value '%v' is not a string", v.path))
 }
 
 func (v JsonValue) HexBytes() []byte {
@@ -109,7 +110,7 @@ func (v JsonValue) HexBytes() []byte {
 	if s != "" {
 		bs, err := hex.DecodeString(s)
 		if err != nil {
-			panic(Panic(Wrapf(JsonTypeError, "value '%v' is not a hex string", v.path), 2))
+			panic(errstr.Wrapf(1,JsonTypeError, "value '%v' is not a hex string", v.path))
 		}
 		return bs
 	}

@@ -1,6 +1,9 @@
 package fu
 
-import "reflect"
+import (
+	"github.com/sudachen/smwlt/fu/errstr"
+	"reflect"
+)
 
 func args(a ...interface{}) []reflect.Value {
 	r := make([]reflect.Value, len(a))
@@ -19,12 +22,14 @@ func LuckyCall(f, ret interface{}, a ...interface{}) {
 	v := fv.Call(args(a...))
 	if ret != nil {
 		if !v[1].IsNil() {
-			panic(Panic(v[1].Interface().(error), 3))
+			e := v[1].Interface().(error)
+			panic(errstr.Wrap(2, e, e.Error()))
 		}
 		reflect.ValueOf(ret).Elem().Set(v[0])
 	} else {
 		if !v[0].IsNil() {
-			panic(Panic(v[0].Interface().(error), 3))
+			e := v[0].Interface().(error)
+			panic(errstr.Wrap(2, e, e.Error()))
 		}
 	}
 }

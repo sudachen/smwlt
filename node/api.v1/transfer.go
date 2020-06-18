@@ -3,7 +3,7 @@ package api_v1
 import (
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
 )
 
 // DefaultFee for transfer in the Spacemesh network
@@ -30,12 +30,12 @@ func (c *ClientAgent) Transfer(
 
 	b, err := types.InterfaceToBytes(&tx.InnerTransaction)
 	if err != nil {
-		err = fu.Wrap(err, "failed to encode inner transaction")
+		err = errstr.Wrap(1, err, "failed to encode inner transaction")
 		return
 	}
 	copy(tx.Signature[:], ed25519.Sign2(key, b))
 	if b, err = types.InterfaceToBytes(&tx); err != nil {
-		err = fu.Wrap(err, "failed to encode whole transaction")
+		err = errstr.Wrap(1, err, "failed to encode whole transaction")
 		return
 	}
 
@@ -63,7 +63,7 @@ func (c *ClientAgent) LuckyTransfer(
 
 	txid, err := c.Transfer(amount, from, nonce, key, to, fee, gasLimit)
 	if err != nil {
-		panic(fu.Panic(err, 2))
+		panic(errstr.Frame(2, err))
 	}
 	return txid
 }

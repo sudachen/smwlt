@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
 	"github.com/tyler-smith/go-bip39"
 	"path/filepath"
 	"strings"
@@ -52,7 +52,7 @@ LuckyUnlock unlocks wallet. It panics if failed to unlock
 */
 func (wal Wallet) LuckyUnlock(key string) {
 	if err := wal.Unlock(key); err != nil {
-		panic(fu.Panic(err, 2))
+		panic(errstr.Frame(1, err))
 	}
 }
 
@@ -68,7 +68,7 @@ LuckySave saves wallet. It panics if failed to unlock
 */
 func (wal Wallet) LuckySave() {
 	if err := wal.Save(); err != nil {
-		panic(fu.Panic(err, 2))
+		panic(errstr.Frame(1,err))
 	}
 }
 
@@ -77,7 +77,7 @@ LuckyNewPair creates keys pair. It panics if failed to unlock
 */
 func (wal Wallet) LuckyNewPair(alias string) {
 	if err := wal.NewPair(alias); err != nil {
-		panic(fu.Panic(err, 2))
+		panic(errstr.Frame(1, err))
 	}
 }
 
@@ -86,7 +86,7 @@ LuckyImportKey imports key to the wallet. It panics if failed to unlock
 */
 func (wal Wallet) LuckyImportKey(alias string, address types.Address, key ed25519.PrivateKey) {
 	if err := wal.ImportKey(alias, address, key); err != nil {
-		panic(fu.Panic(err, 2))
+		panic(errstr.Frame(1, err))
 	}
 }
 
@@ -122,10 +122,7 @@ func LookupOne(alias string, w ...Wallet) (acc Account, exists bool) {
 		for _, a := range accs {
 			v = append(v, fmt.Sprintf("\t%v [%v]\n", a.Name, a.Address.Hex(), a.Wallet.DisplayName()))
 		}
-		panic(fu.Panic(
-			fmt.Errorf("Account '%v' is ambiguous:\n"+strings.Join(v, ""),
-				alias,
-			)))
+		panic(errstr.Format(1, "Account '%v' is ambiguous:\n"+strings.Join(v, ""), alias))
 	}
 	if len(accs) > 0 {
 		acc = accs[0]
@@ -140,7 +137,7 @@ Lookup for an account in walltes. It panics if there is not exactly one account
 func LuckyLookup(alias string, w ...Wallet) Account {
 	acc, exists := LookupOne(alias, w...)
 	if !exists {
-		panic(fu.Panic(fmt.Errorf("account '%v' does not exist", alias)))
+		panic(errstr.Format(1, "account '%v' does not exist", alias))
 	}
 	return acc
 }

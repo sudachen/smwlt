@@ -1,9 +1,9 @@
 package cli
 
 import (
-	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/util"
 	"github.com/spf13/cobra"
+	"github.com/sudachen/smwlt/fu/stdio"
 	"github.com/sudachen/smwlt/wallet"
 )
 
@@ -14,6 +14,6 @@ var cmdExport = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		w := loadWallet()
 		acc := wallet.LuckyLookup(args[0], w...)
-		fmt.Println(util.Bytes2Hex(acc.Private))
+		stdio.Println(util.Bytes2Hex(acc.Private))
 	},
 }

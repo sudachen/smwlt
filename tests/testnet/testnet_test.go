@@ -1,9 +1,9 @@
-package tests
+package testnet
 
 import (
 	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
-	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
 	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"github.com/sudachen/smwlt/wallet/legacy"
@@ -12,23 +12,33 @@ import (
 	"time"
 )
 
+func onpanic(t *testing.T) {
+	if e := recover(); e != nil {
+		t.Error(errstr.MessageOf(e))
+		t.FailNow()
+	}
+}
+
 func Test_NodeInfo(t *testing.T) {
-	c := api.Client{Verbose: fu.Printfln}.New()
+	defer onpanic(t)
+	c := api.Client{Verbose: t.Logf}.New()
 	info := c.LuckyNodeInfo()
 	fmt.Printf("%#v\n", info)
 }
 
 func Test_AccountInfo(t *testing.T) {
-	c := api.Client{Verbose: fu.Printfln}.New()
-	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
+	defer onpanic(t)
+	c := api.Client{Verbose: t.Logf}.New()
+	w := legacy.Wallet{Path: "../../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	info := c.LuckyAccountInfo(anton.Address)
 	fmt.Printf("%#v\n", info)
 }
 
 func Test_Transfer(t *testing.T) {
-	c := api.Client{Verbose: fu.Printfln}.New()
-	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
+	defer onpanic(t)
+	c := api.Client{Verbose: t.Logf}.New()
+	w := legacy.Wallet{Path: "../../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
 	anton_info1 := c.LuckyAccountInfo(anton.Address)
@@ -53,9 +63,10 @@ func Test_Transfer(t *testing.T) {
 	fmt.Printf("almog: %#v\n", almong_info2.Balance)
 }
 
-func Test_TxList(t *testing.T) {
-	c := api.Client{Verbose: fu.Printfln}.New()
-	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
+func Test_TxList1(t *testing.T) {
+	defer onpanic(t)
+	c := api.Client{Verbose: t.Logf}.New()
+	w := legacy.Wallet{Path: "../../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
 	info := c.LuckyNodeInfo()

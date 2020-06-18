@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
+	"github.com/sudachen/smwlt/fu/stdio"
 	"github.com/sudachen/smwlt/wallet"
 	"sort"
 	"strings"
@@ -19,11 +19,11 @@ var cmdInfo = &cobra.Command{
 			for _, a := range args {
 				accs := wallet.Lookup(a, w...)
 				if len(accs) == 0 {
-					fmt.Printf("Account %v:\n\tdoes not exist\n", a)
+					stdio.Printf("Account %v:\n\tdoes not exist\n", a)
 				}
 				for _, a := range accs {
 					nfo := c.LuckyAccountInfo(a.Address)
-					fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
+					stdio.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
 						a.Name,
 						a.Wallet.DisplayName(),
 						"Address:", a.Address.Hex(),
@@ -49,13 +49,13 @@ var cmdInfo = &cobra.Command{
 				for _, a := range m[n] {
 					nfo, err := c.GetAccountInfo(a.Address)
 					if err != nil {
-						fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 2),
+						stdio.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 2),
 							a.Name,
 							a.Wallet.DisplayName(),
 							"Address:", a.Address.Hex(),
 							"Error:", err.Error())
 					} else {
-						fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
+						stdio.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
 							a.Name,
 							a.Wallet.DisplayName(),
 							"Address:", a.Address.Hex(),

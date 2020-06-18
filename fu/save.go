@@ -1,6 +1,7 @@
 package fu
 
 import (
+	"github.com/sudachen/smwlt/fu/errstr"
 	"io"
 	"os"
 	"path/filepath"
@@ -10,7 +11,7 @@ func SaveWithBackup(path string, writer func(io.Writer) error) (err error) {
 	if _, e := os.Stat(path); e == nil {
 		_ = os.Remove(path + "~")
 		if err = os.Rename(path, path+"~"); err != nil {
-			return Wrapf(err, "failed to backup file: %v", err.Error())
+			return errstr.Wrapf(1, err, "failed to backup file: %v", err.Error())
 		}
 	}
 

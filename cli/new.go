@@ -1,11 +1,12 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
-	"github.com/Songmu/prompter"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/stdio"
 	"strings"
 )
 
@@ -15,16 +16,16 @@ var cmdNew = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		w := loadOrCreateWallet()
-		fmt.Printf("Selected wallet%v:\n", fu.Ifs(len(w) > 1, "s", ""))
+		stdio.Printf("Selected wallet%v:\n", fu.Ifs(len(w) > 1, "s", ""))
 		for _, x := range w {
-			fmt.Println("\t" + x.DisplayName())
+			stdio.Println("\t" + x.DisplayName())
 		}
 		if len(w) > 1 {
-			panic(fu.Panic(errors.New("wallet is ambiguous, you must select only one")))
+			panic(errstr.New(0, "wallet is ambiguous, you must select only one"))
 		}
 		a, exists := w[0].Lookup(args[0])
 		if exists {
-			panic(fu.Panic(fmt.Errorf("Account '%v' already exists", a.Name)))
+			panic(errstr.Format(0, "Account '%v' already exists", a.Name))
 		}
 		yes := *optYes
 		if !yes {
@@ -34,13 +35,13 @@ var cmdNew = &cobra.Command{
 			w[0].LuckyNewPair(args[0])
 			w[0].LuckySave()
 			a, _ = w[0].Lookup(args[0])
-			fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 1),
+			stdio.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 1),
 				args[0], w[0].DisplayName(),
 				"Address:", a.Address.Hex(),
 			)
-			fmt.Println("Successfully created")
+			stdio.Println("Successfully created")
 		} else {
-			fmt.Println("Cancelled")
+			stdio.Println("Cancelled")
 		}
 	},
 }

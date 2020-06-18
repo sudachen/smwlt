@@ -8,6 +8,7 @@ import (
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
 	"github.com/sudachen/smwlt/wallet"
 	"io"
 	"os"
@@ -59,10 +60,10 @@ func load(path string) (wal wallet.Wallet, err error) {
 	for k, v := range m {
 		a := account{wallet.Account{Name: k, Wallet: wallet.Wallet{w}}}
 		if a.Address, err = types.StringToAddress(v.PubKey); err != nil {
-			return wal, fu.Wrap(err, "failed to decode public key")
+			return wal, errstr.Wrap(1, err, "failed to decode public key")
 		}
 		if a.Private, err = hex.DecodeString(v.PrivKey); err != nil {
-			return wal, fu.Wrap(err, "failed to decode private key")
+			return wal, errstr.Wrap(1, err, "failed to decode private key")
 		}
 		w.accounts = append(w.accounts, a)
 	}
@@ -144,7 +145,7 @@ func (w *legacyWallet) NewPair(alias string) (err error) {
 	}
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		return fu.Wrapf(err, "cannot create account: %s", err.Error())
+		return errstr.Wrapf(1, err, "cannot create account: %s", err.Error())
 	}
 	w.accounts = append(w.accounts, account{wallet.Account{
 		Name:    alias,

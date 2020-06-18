@@ -1,11 +1,11 @@
 package cli
 
 import (
-	"fmt"
-	"github.com/Songmu/prompter"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/spf13/cobra"
-	"github.com/sudachen/smwlt/fu"
+	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/stdio"
 	"github.com/sudachen/smwlt/wallet"
 	"strconv"
 	"strings"
@@ -23,7 +23,7 @@ var cmdSend = &cobra.Command{
 		if !exists {
 			x, err := types.StringToAddress(args[1])
 			if err != nil {
-				panic(fu.Panic(fmt.Errorf("account '%v' does not exist", args[1])))
+				panic(errstr.Format(0, "account '%v' does not exist", args[1]))
 			}
 			to = x
 		} else {
@@ -33,19 +33,19 @@ var cmdSend = &cobra.Command{
 		nfo := c.LuckyAccountInfo(from.Address)
 		amount, err := strconv.Atoi(args[2])
 		if err != nil {
-			panic(fu.Panic(fmt.Errorf("bad amount '%v'", args[2])))
+			panic(errstr.Format(0,"bad amount '%v'", args[2]))
 		}
 		fee := int(c.DefaultFee)
 		if len(args) > 3 {
 			fee, err = strconv.Atoi(args[3])
 			if err != nil {
-				panic(fu.Panic(fmt.Errorf("bad fee '%v'", args[3])))
+				panic(errstr.Format(0, "bad fee '%v'", args[3]))
 			}
 		}
 		if nfo.Balance < uint64(amount+fee) {
-			panic(fu.Panic(fmt.Errorf("not enough balance")))
+			panic(errstr.Format(0, "not enough balance"))
 		}
-		fmt.Printf("Transfer coins:\n"+strings.Repeat("\t"+keyValueFormat, 5),
+		stdio.Printf("Transfer coins:\n"+strings.Repeat("\t"+keyValueFormat, 5),
 			"From:", from.Address.Hex(),
 			"To:", to.Hex(),
 			"Balance:", nfo.Balance,
@@ -56,10 +56,10 @@ var cmdSend = &cobra.Command{
 			ok = prompter.YN("Confirm transaction", false)
 		}
 		if !ok {
-			fmt.Println("Cancelled")
+			stdio.Println("Cancelled")
 			return
 		}
 		txid := c.LuckyTransfer(uint64(amount), from.Address, nfo.Nonce, from.Private, to, uint64(fee), c.DefaultGasLimit)
-		fmt.Println("Succeeded with TxID:", txid.String())
+		stdio.Println("Succeeded with TxID:", txid.String())
 	},
 }

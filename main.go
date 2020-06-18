@@ -3,33 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/sudachen/smwlt/cli"
-	"github.com/sudachen/smwlt/fu"
-	"github.com/sudachen/smwlt/wallet"
-	legacy2 "github.com/sudachen/smwlt/wallet/legacy"
+	"github.com/sudachen/smwlt/fu/errstr"
 	"os"
 )
-
-func loadWallet(path string, legacy bool, password string) (w []wallet.Wallet) {
-	if legacy {
-		w = []wallet.Wallet{legacy2.Wallet{Path: path}.LuckyLoad()}
-	} else {
-		panic(fu.Panic(fmt.Errorf("unsupported wallet type")))
-	}
-	if password != "" {
-		ok := wallet.Unlock(password, w...)
-		if !ok {
-			panic(fu.Panic(fmt.Errorf("there is nothing to unlock, wrong password(?)")))
-		}
-	}
-	return
-}
 
 func main() {
 
 	defer func() {
 		if !*cli.OptTrace {
 			if e := recover(); e != nil {
-				fmt.Fprintln(os.Stderr, fu.PanicMessage(e))
+				fmt.Fprintln(os.Stderr, errstr.MessageOf(e))
 				os.Exit(1)
 			}
 		}
