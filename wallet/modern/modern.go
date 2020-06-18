@@ -169,8 +169,6 @@ func (w *modernWallet) Unlock(password string) (err error) {
 		w.accounts = append(w.accounts, a)
 	}
 	w.secret = m
-	fmt.Println(w.secret.Val)
-
 	return
 }
 
@@ -188,7 +186,7 @@ NewPair implements WalletImpl interface
 */
 func (w *modernWallet) NewPair(alias string) (err error) {
 	no := len(w.accounts)
-	address, key := wallet.GenPair(len(w.accounts),w.secret.Value("mnemonic").String(), DefaultSalt)
+	address, key := wallet.GenPair(len(w.accounts), w.secret.Value("mnemonic").String(), DefaultSalt)
 	return w.AddPair(alias, address, key, no)
 }
 

@@ -162,7 +162,7 @@ func Address(key ed25519.PrivateKey) types.Address {
 /*
 GenPair generates new wkeys pair
 */
-func GenPair(no int, mnemonic string, salt string) (address types.Address, key  ed25519.PrivateKey) {
+func GenPair(no int, mnemonic string, salt string) (address types.Address, key ed25519.PrivateKey) {
 	seed := bip39.NewSeed(mnemonic, "")
 	binsalt := []byte(salt)
 	key = ed25519.NewDerivedKeyFromSeed(seed[32:], uint64(no), binsalt)
