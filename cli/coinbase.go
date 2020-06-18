@@ -34,6 +34,6 @@ var cmdCoinbase = &cobra.Command{
 		if nfo.Coinbase != acc.Address {
 			panic(fu.Panic(fmt.Errorf("oops, coinbase is not updated"), 2))
 		}
-		fmt.Printf("Succeeded, codebase is %v now\n", nfo.Coinbase.Hex())
+		fmt.Printf("Succeeded, coinbase is %v now\n", nfo.Coinbase.Hex())
 	},
 }

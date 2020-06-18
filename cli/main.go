@@ -13,8 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -174,24 +172,15 @@ func loadOrCreateWallet() (w []wallet.Wallet) {
 			}
 			path := *optWalletFile
 			if path == "" {
-				maxNo := -1
-				rx, _ := regexp.Compile("my_wallet_(\\d+)_.*\\.json")
-				if err := filepath.Walk(*optWalletDir, func(path string, info os.FileInfo, err error) error {
-					base := filepath.Base(path)
-					if v := rx.FindString(base); v != "" {
-						no, _ := strconv.Atoi(v)
-						if no > maxNo {
-							maxNo = no
-						}
+				for {
+					path = fmt.Sprintf("my_wallet_%s.json", time.Now().UTC().Format("2006-01-02T15-04-05.000")+"Z")
+					if *optWalletDir != "" {
+						path = filepath.Join(*optWalletDir, path)
 					}
-					return nil
-				}); err != nil {
-					panic(fu.Panic(err))
+					if !exist(path) { // why not?
+						break
+					}
 				}
-				path = fmt.Sprintf("my_wallet_%d_%s.json", maxNo+1, time.Now().UTC().Format("2006-01-02T15-04-05.000")+"Z")
-			}
-			if dir, _ := filepath.Split(path); dir == "" {
-				path = filepath.Join(*optWalletDir, path)
 			}
 			mnemonic, err := wallet.NewMnemonic()
 			if err != nil {
