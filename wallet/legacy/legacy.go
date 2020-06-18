@@ -129,7 +129,7 @@ func (w *legacyWallet) Save() (err error) {
 		}
 		m := map[string]keys{}
 		for _, a := range w.accounts {
-			m[a.Name] = keys{a.Address.Hex(), hex.EncodeToString(a.Private[:])}
+			m[a.Name] = keys{hex.EncodeToString(wallet.PublicKey(a.Private)), hex.EncodeToString(a.Private)}
 		}
 		return json.NewEncoder(wr).Encode(&m)
 	})

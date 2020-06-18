@@ -2,7 +2,6 @@ package modern
 
 import (
 	"bytes"
-	cryptorand "crypto/rand"
 	"crypto/sha512"
 	"encoding/hex"
 	"errors"
@@ -11,7 +10,6 @@ import (
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/wallet"
-	"github.com/tyler-smith/go-bip39"
 	"golang.org/x/crypto/pbkdf2"
 	"io"
 	"os"
@@ -56,7 +54,7 @@ func fill(path, name, password, mnemonic string) (wal wallet.Wallet) {
 			"created":     now(),
 			"netId":       int(0),
 			"meta": map[string]interface{}{
-				"salt": defaultSalt,
+				"salt": DefaultSalt,
 			},
 		},
 		"crypto": map[string]interface{}{
@@ -69,7 +67,7 @@ func fill(path, name, password, mnemonic string) (wal wallet.Wallet) {
 		"mnemonic": mnemonic,
 		"accounts": []map[string]interface{}{},
 	}}
-	modern.key = pbkdf2.Key([]byte(password), []byte(defaultSalt), 1000000, 32, sha512.New)
+	modern.key = pbkdf2.Key([]byte(password), []byte(DefaultSalt), 1000000, 32, sha512.New)
 	return wallet.Wallet{modern}
 }
 
@@ -135,7 +133,7 @@ func (w *modernWallet) Name() string {
 	return w.name
 }
 
-const defaultSalt = "Spacemesh blockmesh"
+const DefaultSalt = "Spacemesh blockmesh"
 
 /*
 Unlock implements WalletImpl interface
@@ -150,7 +148,7 @@ func (w *modernWallet) Unlock(password string) (err error) {
 		return fmt.Errorf("unknown cipher %v", cfr)
 	}
 	bs := w.content.Map("crypto").Value("cipherText").HexBytes()
-	salt := fu.Fne(w.content.Map("meta").Map("meta").Value("salt").String(), defaultSalt)
+	salt := fu.Fne(w.content.Map("meta").Map("meta").Value("salt").String(), DefaultSalt)
 	w.key = pbkdf2.Key([]byte(password), []byte(salt), 1000000, 32, sha512.New)
 	text, err := fu.AesXor(w.key, bs)
 	m := fu.JsonMap{Val: map[string]interface{}{}}
@@ -171,6 +169,8 @@ func (w *modernWallet) Unlock(password string) (err error) {
 		w.accounts = append(w.accounts, a)
 	}
 	w.secret = m
+	fmt.Println(w.secret.Val)
+
 	return
 }
 
@@ -188,11 +188,8 @@ NewPair implements WalletImpl interface
 */
 func (w *modernWallet) NewPair(alias string) (err error) {
 	no := len(w.accounts)
-	seed := bip39.NewSeed(w.secret.Value("mnemonic").String(), "")
-	key := ed25519.NewDerivedKeyFromSeed(seed[:32], uint64(no), []byte(defaultSalt))
-	pub := key.Public().(ed25519.PublicKey)[:]
-
-	return w.AddPair(alias, types.BytesToAddress(pub), key, no)
+	address, key := wallet.GenPair(len(w.accounts),w.secret.Value("mnemonic").String(), DefaultSalt)
+	return w.AddPair(alias, address, key, no)
 }
 
 /*
@@ -212,8 +209,8 @@ func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.
 		"displayName": alias,
 		"created":     now(),
 		"path":        fmt.Sprintf("0/0/%d", index),
-		"publicKey":   a.Address.Hex(),
-		"secretKey":   hex.EncodeToString(key[:]),
+		"publicKey":   hex.EncodeToString(wallet.PublicKey(key)),
+		"secretKey":   hex.EncodeToString(key),
 	})
 
 	bf := bytes.Buffer{}
@@ -223,6 +220,8 @@ func (w *modernWallet) AddPair(alias string, address types.Address, key ed25519.
 	text, err := fu.AesXor(w.key, bf.Bytes())
 	w.content.Map("crypto").Val["cipherText"] = hex.EncodeToString(text)
 
+	w.accounts = append(w.accounts, a)
+
 	return
 }
 
@@ -231,15 +230,4 @@ ImportKey implements WalletImpl interface
 */
 func (w *modernWallet) ImportKey(alias string, address types.Address, key ed25519.PrivateKey) (err error) {
 	return w.AddPair(alias, address, key, len(w.accounts))
-}
-
-/*
-NewMnemonic generates new wallet mnemonic
-*/
-func NewMnemonic() (mnemonic string, err error) {
-	bs := make([]byte, 16)
-	if _, err = cryptorand.Read(bs); err != nil {
-		return
-	}
-	return bip39.NewMnemonic(bs)
 }

@@ -49,11 +49,11 @@ var cmdInfo = &cobra.Command{
 				for _, a := range m[n] {
 					nfo, err := c.GetAccountInfo(a.Address)
 					if err != nil {
-						fmt.Printf("Account %v [%v]:\n\t%v\n",
+						fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 2),
 							a.Name,
 							a.Wallet.DisplayName(),
-							err.Error(),
-						)
+							"Address:", a.Address.Hex(),
+							"Error:", err.Error())
 					} else {
 						fmt.Printf("Account %v [%v]:\n"+strings.Repeat("\t"+keyValueFormat, 3),
 							a.Name,

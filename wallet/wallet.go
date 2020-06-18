@@ -1,10 +1,12 @@
 package wallet
 
 import (
+	cryptorand "crypto/rand"
 	"fmt"
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu"
+	"github.com/tyler-smith/go-bip39"
 	"path/filepath"
 	"strings"
 )
@@ -141,4 +143,40 @@ func LuckyLookup(alias string, w ...Wallet) Account {
 		panic(fu.Panic(fmt.Errorf("account '%v' does not exist", alias)))
 	}
 	return acc
+}
+
+/*
+PublicKey retrives publick key form private
+*/
+func PublicKey(key ed25519.PrivateKey) ed25519.PublicKey {
+	return key.Public().(ed25519.PublicKey)
+}
+
+/*
+Address retrives Address key form private
+*/
+func Address(key ed25519.PrivateKey) types.Address {
+	return types.BytesToAddress(key.Public().(ed25519.PublicKey))
+}
+
+/*
+GenPair generates new wkeys pair
+*/
+func GenPair(no int, mnemonic string, salt string) (address types.Address, key  ed25519.PrivateKey) {
+	seed := bip39.NewSeed(mnemonic, "")
+	binsalt := []byte(salt)
+	key = ed25519.NewDerivedKeyFromSeed(seed[32:], uint64(no), binsalt)
+	address = Address(key)
+	return
+}
+
+/*
+NewMnemonic generates new wallet mnemonic
+*/
+func NewMnemonic() (mnemonic string, err error) {
+	bs := make([]byte, 16)
+	if _, err = cryptorand.Read(bs); err != nil {
+		return
+	}
+	return bip39.NewMnemonic(bs)
 }

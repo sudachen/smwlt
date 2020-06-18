@@ -193,7 +193,7 @@ func loadOrCreateWallet() (w []wallet.Wallet) {
 			if dir, _ := filepath.Split(path); dir == "" {
 				path = filepath.Join(*optWalletDir, path)
 			}
-			mnemonic, err := modern.NewMnemonic()
+			mnemonic, err := wallet.NewMnemonic()
 			if err != nil {
 				panic(fu.Panic(fu.Wrapf(err, "failed to create new mnemonic: %v", err.Error())))
 			}
