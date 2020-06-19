@@ -1,7 +1,6 @@
 package testnet
 
 import (
-	"fmt"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/sudachen/smwlt/fu/errstr"
 	api "github.com/sudachen/smwlt/node/api.v1"
@@ -23,30 +22,30 @@ func Test_NodeInfo(t *testing.T) {
 	defer onpanic(t)
 	c := api.Client{Verbose: t.Logf}.New()
 	info := c.LuckyNodeInfo()
-	fmt.Printf("%#v\n", info)
+	t.Logf("%#v\n", info)
 }
 
 func Test_AccountInfo(t *testing.T) {
 	defer onpanic(t)
 	c := api.Client{Verbose: t.Logf}.New()
-	w := legacy.Wallet{Path: "../../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	info := c.LuckyAccountInfo(anton.Address)
-	fmt.Printf("%#v\n", info)
+	t.Logf("%#v\n", info)
 }
 
 func Test_Transfer(t *testing.T) {
 	defer onpanic(t)
 	c := api.Client{Verbose: t.Logf}.New()
-	w := legacy.Wallet{Path: "../../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
 	anton_info1 := c.LuckyAccountInfo(anton.Address)
-	fmt.Printf("anton: %#v\n", anton_info1.Balance)
+	t.Logf("anton: %#v\n", anton_info1.Balance)
 	almong_info1 := c.LuckyAccountInfo(almog.Address)
-	fmt.Printf("almog: %#v\n", almong_info1.Balance)
+	t.Logf("almog: %#v\n", almong_info1.Balance)
 	txid := c.LuckyTransfer(100, anton.Address, anton_info1.Nonce, anton.Private, almog.Address, api.DefaultFee, api.DefaultGasLimit)
-	fmt.Printf("txid: %v\n", txid)
+	t.Logf("txid: %v\n", txid)
 
 	for {
 		txinfo := c.LuckyTransactionInfo(txid)
@@ -58,31 +57,31 @@ func Test_Transfer(t *testing.T) {
 	}
 
 	anton_info2 := c.LuckyAccountInfo(anton.Address)
-	fmt.Printf("anton: %#v\n", anton_info2.Balance)
+	t.Logf("anton: %#v\n", anton_info2.Balance)
 	almong_info2 := c.LuckyAccountInfo(almog.Address)
-	fmt.Printf("almog: %#v\n", almong_info2.Balance)
+	t.Logf("almog: %#v\n", almong_info2.Balance)
 }
 
 func Test_TxList1(t *testing.T) {
 	defer onpanic(t)
 	c := api.Client{Verbose: t.Logf}.New()
-	w := legacy.Wallet{Path: "../../accounts.json"}.LuckyLoad()
+	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
 	info := c.LuckyNodeInfo()
 	anton_info1 := c.LuckyAccountInfo(anton.Address)
-	fmt.Printf("anton: %v, %v\n", anton_info1.Balance, anton_info1.Nonce)
+	t.Logf("anton: %v, %v\n", anton_info1.Balance, anton_info1.Nonce)
 	almong_info1 := c.LuckyAccountInfo(almog.Address)
-	fmt.Printf("almog: %#v\n", almong_info1.Balance)
+	t.Logf("almog: %#v\n", almong_info1.Balance)
 	txs1 := []types.TransactionID{}
 	for k, x := range []uint64{100, 200, 300, 400, 500} {
 		txid := c.LuckyTransfer(x, anton.Address, anton_info1.Nonce+uint64(k), anton.Private, almog.Address, api.DefaultFee, api.DefaultGasLimit)
-		fmt.Printf("txid: %v\n", txid)
+		t.Logf("txid: %v\n", txid)
 		txs1 = append(txs1, txid)
 	}
 	txs2 := c.LuckyTxList(anton.Address, info.VerifiedLayer)
-	for i, t := range txs2 {
+	for i,x := range txs2 {
 		//fmt.Println(i,t)
-		fmt.Println(i, c.LuckyTransactionInfo(t))
+		t.Log(i, c.LuckyTransactionInfo(x))
 	}
 }

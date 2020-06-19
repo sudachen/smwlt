@@ -20,7 +20,8 @@ func (p OsIo) ExpectRxOrPanic(rx string) {
 }
 
 func (p OsIo) SkipRest() {
-	for p.Scan() {}
+	for p.Scan() {
+	}
 }
 
 func (p OsIo) SkipUntil(rx string) {
@@ -35,6 +36,3 @@ func (p OsIo) SkipUntil(rx string) {
 		}
 	}
 }
-
-
-

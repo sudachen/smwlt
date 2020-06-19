@@ -2,3 +2,5 @@
 .*
 smwlt*
 *.wasm
+*.out
+gocov.txt

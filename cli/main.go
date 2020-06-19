@@ -2,10 +2,10 @@ package cli
 
 import (
 	"fmt"
-	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/sudachen/smwlt/fu/stdio"
 	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
@@ -160,7 +160,7 @@ func loadOrCreateWallet() (w []wallet.Wallet) {
 			w = []wallet.Wallet{legacy.Wallet{*optWalletFile}.New()}
 		} else {
 			if *optWalletName == "" {
-				panic(errstr.Format(0,"you must specify new wallet name"))
+				panic(errstr.Format(0, "you must specify new wallet name"))
 			}
 			p := *optPassword
 			for p == "" {

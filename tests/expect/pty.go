@@ -14,12 +14,16 @@ type OsIo struct {
 }
 
 func (p OsIo) Close() {
-	if p.Input != nil { p.Input.Close() }
-	if p.Output != nil { p.Output.Close() }
+	if p.Input != nil {
+		p.Input.Close()
+	}
+	if p.Output != nil {
+		p.Output.Close()
+	}
 }
 
 func (p OsIo) LocalIo() stdio.IoReseter {
-	return stdio.LocalIo(p.Input,p.Output,p.Output)
+	return stdio.LocalIo(p.Input, p.Output, p.Output)
 }
 
 type Pty struct {
@@ -27,15 +31,19 @@ type Pty struct {
 	Target OsIo
 }
 
-func New() (pty *Pty,err error) {
+func New() (pty *Pty, err error) {
 	pty = &Pty{}
 	defer func() {
 		if err != nil {
 			pty.Close()
 		}
 	}()
-	if pty.Host.Input,pty.Target.Output,err = os.Pipe(); err != nil { return }
-	if pty.Target.Input,pty.Host.Output,err = os.Pipe(); err != nil { return }
+	if pty.Host.Input, pty.Target.Output, err = os.Pipe(); err != nil {
+		return
+	}
+	if pty.Target.Input, pty.Host.Output, err = os.Pipe(); err != nil {
+		return
+	}
 
 	pty.Host.Scanner = bufio.NewScanner(pty.Host.Input)
 	pty.Target.Scanner = bufio.NewScanner(pty.Target.Input)
@@ -52,7 +60,7 @@ func (p OsIo) Send(text string) error {
 	return err
 }
 
-func (p OsIo) Receive() (string,error) {
+func (p OsIo) Receive() (string, error) {
 	if p.Scan() {
 		return p.Text(), nil
 	}

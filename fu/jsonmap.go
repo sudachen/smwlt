@@ -72,7 +72,7 @@ func (m JsonMap) List(n string) JsonList {
 		if q, ok := v.([]interface{}); ok {
 			return JsonList{q, next}
 		}
-		panic(errstr.Wrapf(1,JsonTypeError, "value '%v' is not a list", next))
+		panic(errstr.Wrapf(1, JsonTypeError, "value '%v' is not a list", next))
 	}
 	return JsonList{[]interface{}{}, next}
 }
@@ -92,7 +92,7 @@ func (l JsonList) Maps() []JsonMap {
 		if x, ok := v.(map[string]interface{}); ok {
 			r[i] = JsonMap{x, next}
 		} else {
-			panic(errstr.Wrapf(1,JsonTypeError, "value '%v' is not a map", next))
+			panic(errstr.Wrapf(1, JsonTypeError, "value '%v' is not a map", next))
 		}
 	}
 	return r
@@ -110,7 +110,7 @@ func (v JsonValue) HexBytes() []byte {
 	if s != "" {
 		bs, err := hex.DecodeString(s)
 		if err != nil {
-			panic(errstr.Wrapf(1,JsonTypeError, "value '%v' is not a hex string", v.path))
+			panic(errstr.Wrapf(1, JsonTypeError, "value '%v' is not a hex string", v.path))
 		}
 		return bs
 	}

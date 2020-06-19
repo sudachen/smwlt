@@ -42,7 +42,9 @@ func (e *errorStr) String() string {
 func (f frame) String() (str string) {
 	function, file, line := f.location()
 	str = function
-	if str == "" { str = "<unknown func>" }
+	if str == "" {
+		str = "<unknown func>"
+	}
 	if file != "" {
 		str += fmt.Sprintf(" %s:%d\n", file, line)
 	}
@@ -57,40 +59,39 @@ func (e *errorStr) Is(err error) bool {
 	return errors.Is(e.error, err)
 }
 
-
 /*
 Format formats new error
 */
 func Format(skip int, f string, a ...interface{}) error {
-	return &errorStr{fmt.Sprintf(f,a...), nil, caller(skip+1)}
+	return &errorStr{fmt.Sprintf(f, a...), nil, caller(skip + 1)}
 }
 
 /*
 Wrapf wraps error with formatted string
 */
 func Wrapf(skip int, err error, f string, a ...interface{}) error {
-	return &errorStr{fmt.Sprintf(f,a...), err, caller(skip+1)}
+	return &errorStr{fmt.Sprintf(f, a...), err, caller(skip + 1)}
 }
 
 /*
 Wrap wraps error with string message
 */
 func Frame(skip int, err error) error {
-	return &errorStr{err.Error(), err, caller(skip+1)}
+	return &errorStr{err.Error(), err, caller(skip + 1)}
 }
 
 /*
 Wrap wraps error with string message
 */
 func Wrap(skip int, err error, msg string) error {
-	return &errorStr{msg, err, caller(skip+1)}
+	return &errorStr{msg, err, caller(skip + 1)}
 }
 
 /*
 New creates new error
 */
 func New(skip int, msg string) error {
-	return &errorStr{msg, nil, caller(skip+1)}
+	return &errorStr{msg, nil, caller(skip + 1)}
 }
 
 /*

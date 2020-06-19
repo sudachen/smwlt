@@ -10,4 +10,3 @@ func Verbose(f string, a ...interface{}) {
 		stdio.Printfln("# "+f, a...)
 	}
 }
-

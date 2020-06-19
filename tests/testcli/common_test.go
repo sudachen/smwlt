@@ -11,11 +11,11 @@ import (
 
 func cliTestOnPanic(t *testing.T, pty *expect.Pty, done chan error, passOnFail bool) {
 	if e := recover(); e != nil {
-		<- done
+		<-done
 		if !passOnFail {
 			t.Error(errstr.MessageOf(e))
 		} else {
-			t.Log("(PASS ON FAIL) "+errstr.MessageOf(e))
+			t.Log("(PASS ON FAIL) " + errstr.MessageOf(e))
 		}
 		pty.Host.SkipRest()
 		if passOnFail {
@@ -25,13 +25,13 @@ func cliTestOnPanic(t *testing.T, pty *expect.Pty, done chan error, passOnFail b
 	}
 	// if there is no panic
 	pty.Host.SkipRest()
-	err := <- done
+	err := <-done
 	if err != nil {
 		if !passOnFail {
 			t.Error(err.Error())
 			t.FailNow()
 		}
-		t.Log("(PASS ON FAIL) "+err.Error())
+		t.Log("(PASS ON FAIL) " + err.Error())
 	} else {
 		if passOnFail {
 			t.Error("must fail")
@@ -40,12 +40,12 @@ func cliTestOnPanic(t *testing.T, pty *expect.Pty, done chan error, passOnFail b
 	}
 }
 
-func execCLI(t *testing.T, target *expect.OsIo, args ...string) (done chan error){
-	done = make(chan error,1)
+func execCLI(t *testing.T, target *expect.OsIo, args ...string) (done chan error) {
+	done = make(chan error, 1)
 	go func() {
 		defer target.LocalIo().Reset()
-		defer func(){
-			t.Log("CLI done");
+		defer func() {
+			t.Log("CLI done")
 			target.Close()
 			close(done)
 		}()
@@ -57,7 +57,7 @@ func execCLI(t *testing.T, target *expect.OsIo, args ...string) (done chan error
 				stdio.Println(e)
 			}
 		}()
-		t.Log("execute CLI with ",args)
+		t.Log("execute CLI with ", args)
 		if err := c.Execute(); err != nil {
 			//panic(err)
 			done <- err
@@ -87,4 +87,3 @@ func failCLI(t *testing.T, test func(t *testing.T, pty *expect.Pty), args ...str
 	defer cliTestOnPanic(t, pty, done, true)
 	test(t, pty)
 }
-

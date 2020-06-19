@@ -1,10 +1,10 @@
 package cli
 
 import (
-	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/sudachen/smwlt/fu/stdio"
 	"github.com/sudachen/smwlt/wallet"
 	"strconv"
@@ -33,7 +33,7 @@ var cmdSend = &cobra.Command{
 		nfo := c.LuckyAccountInfo(from.Address)
 		amount, err := strconv.Atoi(args[2])
 		if err != nil {
-			panic(errstr.Format(0,"bad amount '%v'", args[2]))
+			panic(errstr.Format(0, "bad amount '%v'", args[2]))
 		}
 		fee := int(c.DefaultFee)
 		if len(args) > 3 {

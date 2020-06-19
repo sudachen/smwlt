@@ -1,0 +1,75 @@
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.2.0 # The Windows orb give you everything you need to start using the Windows executor.
+
+jobs:
+  test-linux:
+    docker:
+      - image: sudachen/go1137-ci
+
+    parallelism: 1
+
+    environment:
+      MXNET_ENFORCE_DETERMINISM: 1
+      OMP_NUM_THREADS: 4
+      MXNET_OMP_MAX_THREADS: 4
+
+    steps:
+      - checkout
+      - run: make build
+      - run: make run-linux-tests
+      - run: make build-windows-tests
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .data
+
+  test-windows:
+    executor: win/default
+
+    steps:
+      - attach_workspace:
+          at: .\ws
+      - run:
+          command: dir /s
+          shell: cmd.exe
+      - run:
+          command: cd .\ws\data\tests && for %i in (*.exe) do %i -test.v=true -test.coverprofile=%i.out
+          shell: cmd.exe
+      - persist_to_workspace:
+          root: C:\Users\circleci\project\ws
+          paths:
+            - bin
+
+  test-cover:
+    docker:
+      - image: sudachen/go1137-ci
+
+    parallelism: 1
+
+    environment:
+      CC_TEST_REPORTER_ID: 6faa816b8783373b065bcab1cee0278dfd9f5de083e2eb36bb7d2f13e2fc0098
+
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./ws
+      - run: ls -s ./ws/.data .
+      - run: make collect-tests
+      - run: /usr/local/bin/cc-test-reporter after-build -t gocov
+
+workflows:
+  version: 2
+  test-workflow:
+    jobs:
+      - test-linux
+      #- test-windows:
+      #    requires:
+      #      - test-linux
+      - test-cover:
+          requires:
+            - test-windows
+      #      - test-linux
+
+

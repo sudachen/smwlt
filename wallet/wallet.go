@@ -68,7 +68,7 @@ LuckySave saves wallet. It panics if failed to unlock
 */
 func (wal Wallet) LuckySave() {
 	if err := wal.Save(); err != nil {
-		panic(errstr.Frame(1,err))
+		panic(errstr.Frame(1, err))
 	}
 }
 

@@ -2,10 +2,10 @@ package cli
 
 import (
 	"fmt"
-	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/sudachen/smwlt/fu/stdio"
 	"strings"
 )

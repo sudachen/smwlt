@@ -3,12 +3,12 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/spacemeshos/ed25519"
 	"github.com/spacemeshos/go-spacemesh/common/types"
 	"github.com/spf13/cobra"
 	"github.com/sudachen/smwlt/fu"
 	"github.com/sudachen/smwlt/fu/errstr"
+	"github.com/sudachen/smwlt/fu/prompter"
 	"github.com/sudachen/smwlt/fu/stdio"
 	"strings"
 )
