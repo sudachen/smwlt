@@ -44,7 +44,7 @@ jobs:
 
   test-cover:
     docker:
-      - image: sudachen/go1137-ci
+      - image: alpine:3.7
 
     parallelism: 1
 
@@ -57,19 +57,22 @@ jobs:
           at: ./ws
       - run: ls -s ./ws/.data .
       - run: make collect-tests
-      - run: /usr/local/bin/cc-test-reporter after-build -t gocov
+      - run: apk add curl
+      - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
+             chmod +x ./cc-test-reporter
+      - run: ./cc-test-reporter after-build -t gocov
 
 workflows:
   version: 2
   test-workflow:
     jobs:
       - test-linux
-      #- test-windows:
-      #    requires:
-      #      - test-linux
+      - test-windows:
+          requires:
+            - test-linux
       - test-cover:
           requires:
-      #      - test-windows
+            - test-windows
             - test-linux
 
 
