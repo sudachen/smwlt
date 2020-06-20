@@ -1,4 +1,4 @@
-package main
+package go_testnet
 
 import (
 	"bufio"
@@ -22,7 +22,7 @@ func stringify(opts map[string]interface{}) []string {
 
 func exec(path string, opts map[string]interface{}, sigterm chan struct{}) (chan string, error) {
 	c := make(chan string,1)
-	fmt.Println(path,stringify(opts))
+	fmt.Println(path, stringify(opts))
 	cmd := exec2.Command(path, stringify(opts)...)
 	stdout, err := cmd.StdoutPipe()
 	scan := bufio.NewScanner(stdout)
@@ -37,6 +37,7 @@ func exec(path string, opts map[string]interface{}, sigterm chan struct{}) (chan
 	}()
 	go func() {
 		for scan.Scan() {
+			//fmt.Fprintln(os.Stderr,cmd.Process.Pid,path,scan.Text())
 			c <- scan.Text()
 		}
 		close(c)

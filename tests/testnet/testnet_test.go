@@ -6,9 +6,7 @@ import (
 	api "github.com/sudachen/smwlt/node/api.v1"
 	"github.com/sudachen/smwlt/wallet"
 	"github.com/sudachen/smwlt/wallet/legacy"
-	"gotest.tools/assert"
 	"testing"
-	"time"
 )
 
 func onpanic(t *testing.T) {
@@ -18,25 +16,29 @@ func onpanic(t *testing.T) {
 	}
 }
 
+func client(t *testing.T) *api.ClientAgent {
+	return api.Client{Verbose: t.Logf,Endpoint: "localhost:19090"}.New()
+}
+
 func Test_NodeInfo(t *testing.T) {
 	defer onpanic(t)
-	c := api.Client{Verbose: t.Logf}.New()
+	c := client(t)
 	info := c.LuckyNodeInfo()
 	t.Logf("%#v\n", info)
 }
 
 func Test_AccountInfo(t *testing.T) {
 	defer onpanic(t)
-	c := api.Client{Verbose: t.Logf}.New()
+	c := client(t)
 	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	info := c.LuckyAccountInfo(anton.Address)
 	t.Logf("%#v\n", info)
 }
 
-func Test_Transfer(t *testing.T) {
+/*func Test_Transfer(t *testing.T) {
 	defer onpanic(t)
-	c := api.Client{Verbose: t.Logf}.New()
+	c := client(t)
 	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
@@ -60,11 +62,11 @@ func Test_Transfer(t *testing.T) {
 	t.Logf("anton: %#v\n", anton_info2.Balance)
 	almong_info2 := c.LuckyAccountInfo(almog.Address)
 	t.Logf("almog: %#v\n", almong_info2.Balance)
-}
+}*/
 
 func Test_TxList1(t *testing.T) {
 	defer onpanic(t)
-	c := api.Client{Verbose: t.Logf}.New()
+	c := client(t)
 	w := legacy.Wallet{Path: "../accounts.json"}.LuckyLoad()
 	anton := wallet.LuckyLookup("anton", w)
 	almog := wallet.LuckyLookup("almog", w)
@@ -79,7 +81,7 @@ func Test_TxList1(t *testing.T) {
 		t.Logf("txid: %v\n", txid)
 		txs1 = append(txs1, txid)
 	}
-	txs2 := c.LuckyTxList(anton.Address, info.VerifiedLayer)
+	txs2 := c.LuckyTxList(anton.Address, info.SyncedLayer)
 	for i,x := range txs2 {
 		//fmt.Println(i,t)
 		t.Log(i, c.LuckyTransactionInfo(x))

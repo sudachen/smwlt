@@ -31,7 +31,7 @@ build-cross-tests: mk-data-dir
 run-linux-tests: build-linux-tests
 	cd $(TESTDIR) && \
 		for i in ./*.test; do \
-			$$i -test.v=true -test.coverprofile=$$i.out > $$i.log; \
+			$$i -test.v=true -test.coverprofile=$$i.out | tee $$i.log; \
 		done
 
 run-windows-tests: build-windows-tests
@@ -67,6 +67,12 @@ run-cover-all: clean-tests run-linux-tests run-windows-tests collect-tests check
 run-cover-linux: clean-tests run-linux-tests collect-tests check-fail run-cover
 run-all-tests: clean-tests run-linux-tests run-windows-tests check-fail
 run-tests: clean-tests run-linux-tests check-fail
+
+build-local-testnet:
+	cd tests/local-testnet && make build
+
+push-local-testnet: build-local-testnet
+	cd tests/local-testnet && make push
 
 start-local-testnet:
 	docker run -d --rm  --name local-testnet -p 127.0.0.1:19090:19090 sudachen/local-testnet

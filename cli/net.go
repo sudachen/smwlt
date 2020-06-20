@@ -14,18 +14,18 @@ var cmdNet = &cobra.Command{
 		c := newClient()
 		nfo := c.LuckyNodeInfo()
 		const format = "%-16s %v\n"
-		stdio.Printf("Node status:\n"+strings.Repeat("\t"+format, 11),
+		stdio.Printf("Node status:\n"+strings.Repeat("\t"+format, 9),
 			"Synced:", nfo.Synced,
 			"Synced layer:", nfo.SyncedLayer,
 			"Current layer:", nfo.CurrentLayer,
-			"Verified layer:", nfo.VerifiedLayer,
+			//"Verified layer:", nfo.VerifiedLayer,
 			"Peers:", nfo.Peers,
 			"Min peers:", nfo.MinPeers,
 			"Max peers:", nfo.MaxPeers,
 			"Data directory:", nfo.DataDir,
 			"Mining status:", nfo.Status,
 			"Coinbase:", nfo.Coinbase.Hex(),
-			"Remaining bytes:", nfo.SmeshingRemainingBytes,
+			//"Remaining bytes:", nfo.SmeshingRemainingBytes,
 		)
 	},
 }
