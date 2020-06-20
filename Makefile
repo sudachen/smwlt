@@ -68,3 +68,8 @@ run-cover-linux: clean-tests run-linux-tests collect-tests check-fail run-cover
 run-all-tests: clean-tests run-linux-tests run-windows-tests check-fail
 run-tests: clean-tests run-linux-tests check-fail
 
+start-local-testnet:
+	docker run -d --rm  --name local-testnet -p 127.0.0.1:19090:19090 sudachen/local-testnet
+
+stop-local-testnet:
+	docker kill local-testnet
