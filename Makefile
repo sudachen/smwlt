@@ -1,5 +1,7 @@
+.SILENT:
+
 PACKAGE = github.com/sudachen/smwlt/
-TESTS = testcli testwlt #testnet
+TESTS = test0 testwlt testcli testnet
 TESTDIR = .data/tests
 
 mk-data-dir:
@@ -29,12 +31,14 @@ build-cross-tests: mk-data-dir
 run-linux-tests: build-linux-tests
 	cd $(TESTDIR) && \
 		for i in ./*.test; do \
-			$$i -test.v=true -test.coverprofile=$$i.out || exit 1; \
+			$$i -test.v=true -test.coverprofile=$$i.out > $$i.log; \
 		done
 
 run-windows-tests: build-windows-tests
 	cd $(TESTDIR) && \
-		for i in *.exe; do wine $$i -test.v=true -test.coverprofile=$$i.out || exit 1; done
+		for i in *.exe; \
+			do wine $$i -test.v=true -test.coverprofile=$$i.out > $$i.log; \
+		done
 
 collect-tests:
 	if [ -f $(TESTDIR)/c.out ]; then rm $(TESTDIR)/c.out; fi
@@ -43,9 +47,13 @@ collect-tests:
 	for i in $$(find $(TESTDIR) -name '*.osx.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
 	echo "mode: atomic" > c.out
 	cat $(TESTDIR)/c.out | sort >> c.out
-    sed -i -e '\:^$(PACKAGE)/tests:d' c.out
+	sed -i -e '\:^$(PACKAGE)/tests:d' c.out
 	sed -i -e 's:$(PACKAGE)::g' c.out
 	awk '/\.go/{print "$(PACKAGE)"$$0}/^mode/{print $$0}' < c.out > gocov.txt
+	cd $(TESTDIR) && if [ $$(cat *.log | grep FAIL | wc -l) -gt 0 ]; then \
+		grep '.-- FAIL:' *.log; \
+		exit 1; \
+		fi
 
 run-cover:
 	go tool cover -html=gocov.txt
