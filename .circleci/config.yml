@@ -62,10 +62,11 @@ jobs:
           at: ./ws
       - run: ls -s ./ws/.data .
       - run: make collect-tests
-      - run: apk add curl
+      - run: apk add curl make
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
              chmod +x ./cc-test-reporter
       - run: ./cc-test-reporter after-build -t gocov
+      - run: make check-fail
 
 workflows:
   version: 2

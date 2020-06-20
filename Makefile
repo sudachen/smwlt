@@ -50,6 +50,8 @@ collect-tests:
 	sed -i -e '\:^$(PACKAGE)/tests:d' c.out
 	sed -i -e 's:$(PACKAGE)::g' c.out
 	awk '/\.go/{print "$(PACKAGE)"$$0}/^mode/{print $$0}' < c.out > gocov.txt
+
+check-fail:
 	cd $(TESTDIR) && if [ $$(cat *.log | grep FAIL | wc -l) -gt 0 ]; then \
 		grep '.-- FAIL:' *.log; \
 		exit 1; \
@@ -61,8 +63,8 @@ run-cover:
 clean-tests:
 	for i in $$(find $(TESTDIR) -name '*.out'); do rm $$i; done
 
-run-cover-all: clean-tests run-linux-tests run-windows-tests collect-tests run-cover
-run-cover-linux: clean-tests run-linux-tests collect-tests run-cover
-run-all-tests: clean-tests run-linux-tests run-windows-tests
-run-tests: clean-tests run-linux-tests
+run-cover-all: clean-tests run-linux-tests run-windows-tests collect-tests check-fail run-cover
+run-cover-linux: clean-tests run-linux-tests collect-tests check-fail run-cover
+run-all-tests: clean-tests run-linux-tests run-windows-tests check-fail
+run-tests: clean-tests run-linux-tests check-fail
 
