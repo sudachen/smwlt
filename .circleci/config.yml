@@ -60,7 +60,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: ./ws
-      - run: ls -s ./ws/.data .
+      - run: ln -s ./ws/.data .
       - run: apk add curl make
       - run: make collect-tests
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
