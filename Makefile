@@ -52,7 +52,7 @@ collect-tests:
 	awk '/\.go/{print "$(PACKAGE)"$$0}/^mode/{print $$0}' < c.out > gocov.txt
 
 check-fail:
-	cd $(TESTDIR) && if [ $$(cat *.log | grep FAIL | wc -l) -gt 0 ]; then \
+	cd $(TESTDIR) && if [ $$(cat *.log | grep '.-- FAIL:' | wc -l) -gt 0 ]; then \
 		grep '.-- FAIL:' *.log; \
 		exit 1; \
 		fi
