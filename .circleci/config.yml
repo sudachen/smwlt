@@ -25,7 +25,8 @@ jobs:
 
     steps:
       - run:
-          - docker run -d sudachen/local-testnet -p 127.0.0.1:19090:19090
+          command: docker run -d sudachen/local-testnet -p 127.0.0.1:19090:19090
+          shell: cmd.exe
       - attach_workspace:
           at: .\ws
       - run:
