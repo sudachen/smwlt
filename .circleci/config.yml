@@ -61,8 +61,8 @@ jobs:
       - attach_workspace:
           at: ./ws
       - run: ls -s ./ws/.data .
-      - run: make collect-tests
       - run: apk add curl make
+      - run: make collect-tests
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
              chmod +x ./cc-test-reporter
       - run: ./cc-test-reporter after-build -t gocov
@@ -82,5 +82,6 @@ workflows:
       - test-cover:
           requires:
             - test-windows
+            #- test-osx
 
 
