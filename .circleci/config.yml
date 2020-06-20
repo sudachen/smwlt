@@ -8,18 +8,12 @@ jobs:
     docker:
       - image: sudachen/go1144-ci
 
-    parallelism: 1
-
-    environment:
-      MXNET_ENFORCE_DETERMINISM: 1
-      OMP_NUM_THREADS: 4
-      MXNET_OMP_MAX_THREADS: 4
-
     steps:
       - checkout
       - run: make build
       - run: make run-linux-tests
       - run: make build-windows-tests
+      - run: make osx-windows-tests
       - persist_to_workspace:
           root: .
           paths:
@@ -49,7 +43,7 @@ jobs:
     steps:
       - attach_workspace:
           at: ./ws
-      - run: cd ./ws/.data/tests && for i in ./*.test; do $i -test.v=true -test.coverprofile=$i.out; done
+      - run: cd ./ws/.data/tests && for i in ./*.osx; do $i -test.v=true -test.coverprofile=$i.out; done
       - persist_to_workspace:
           root: ./ws
           paths:
@@ -58,8 +52,6 @@ jobs:
   test-cover:
     docker:
       - image: alpine:3.7
-
-    parallelism: 1
 
     environment:
       CC_TEST_REPORTER_ID: 6faa816b8783373b065bcab1cee0278dfd9f5de083e2eb36bb7d2f13e2fc0098
@@ -85,11 +77,9 @@ workflows:
             - test-linux
       - test-osx:
           requires:
-            - test-linux
+            - test-windows
       - test-cover:
           requires:
-            - test-linux
-            - test-windows
             - test-osx
 
 

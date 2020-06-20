@@ -13,7 +13,7 @@ build-windows-tests: mk-data-dir
 	env GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc make build-cross-tests EXT=exe
 
 build-osx-tests: mk-data-dir
-	env GOOS=darwin GOARCH=amd64 make build-cross-tests EXT=oxo
+	env GOOS=darwin GOARCH=amd64 make build-cross-tests EXT=osx
 
 build-linux-tests: mk-data-dir
 	make build-cross-tests EXT=test
