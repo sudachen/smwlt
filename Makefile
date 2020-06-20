@@ -10,19 +10,18 @@ build:
 	go build ./...
 
 build-windows-tests: mk-data-dir
-	env GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc make build-cross-tests
+	env GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc make build-cross-tests EXT=exe
+
+build-osx-tests: mk-data-dir
+	env GOOS=darwin GOARCH=amd64 make build-cross-tests EXT=oxo
 
 build-linux-tests: mk-data-dir
-	for i in $(TESTS); do \
-		cd tests/$$i; \
-		go test -o ../../$(TESTDIR)/$$i.test -c -covermode=atomic -coverpkg=../../...; \
-		cd ../..; \
-	done
+	make build-cross-tests EXT=test
 
 build-cross-tests: mk-data-dir
 	for i in $(TESTS); do \
 		cd tests/$$i; \
-		go test -o ../../$(TESTDIR)/$$i.exe -c -covermode=atomic -coverpkg=../../...; \
+		go test -o ../../$(TESTDIR)/$$i.$(EXT) -c -covermode=atomic -coverpkg=../../...; \
 		cd ../..; \
 	done
 
@@ -34,8 +33,7 @@ run-windows-tests: build-windows-tests
 
 collect-tests:
 	if [ -f $(TESTDIR)/c.out ]; then rm $(TESTDIR)/c.out; fi
-	for i in $$(find $(TESTDIR) -name '*.test.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
-	for i in $$(find $(TESTDIR) -name '*.exe.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
+	for i in $$(find $(TESTDIR) -name '*.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
 	echo "mode: atomic" > c.out
 	cat $(TESTDIR)/c.out | sort >> c.out
     sed -i -e '\:^$(PACKAGE)/tests:d' c.out

@@ -6,7 +6,7 @@ orbs:
 jobs:
   test-linux:
     docker:
-      - image: sudachen/go1137-ci
+      - image: sudachen/go1144-ci
 
     parallelism: 1
 
@@ -35,12 +35,26 @@ jobs:
           command: dir /s
           shell: cmd.exe
       - run:
-          command: cd .\ws\data\tests && for %i in (*.exe) do %i -test.v=true -test.coverprofile=%i.out
+          command: cd .\ws\.data\tests && for %i in (*.exe) do %i -test.v=true -test.coverprofile=%i.out
           shell: cmd.exe
       - persist_to_workspace:
           root: C:\Users\circleci\project\ws
           paths:
-            - bin
+            - .data
+
+  test-osx:
+    build:
+      macos:
+        xcode: 11.3.0
+
+    steps:
+      - attach_workspace:
+          at: ./ws
+      - run: cd ./ws/.data/tests && for i in ./*.test; do $i -test.v=true -test.coverprofile=$i.out; done
+      - persist_to_workspace:
+          root: ./ws
+          paths:
+            - .data
 
   test-cover:
     docker:
@@ -70,9 +84,13 @@ workflows:
       - test-windows:
           requires:
             - test-linux
+      - test-osx:
+          requires:
+            - test-linux
       - test-cover:
           requires:
-            - test-windows
             - test-linux
+            - test-windows
+            - test-osx
 
 
