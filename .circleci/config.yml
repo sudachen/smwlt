@@ -13,7 +13,7 @@ jobs:
       - run: make build
       - run: make run-linux-tests
       - run: make build-windows-tests
-      - run: make osx-windows-tests
+      - run: make build-osx-tests
       - persist_to_workspace:
           root: .
           paths:
