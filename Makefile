@@ -1,5 +1,5 @@
 PACKAGE = github.com/sudachen/smwlt/
-TESTS = testcli testnet testwlt
+TESTS = testcli testwlt #testnet
 TESTDIR = .data/tests
 
 mk-data-dir:
@@ -19,6 +19,7 @@ build-linux-tests: mk-data-dir
 	make build-cross-tests EXT=test
 
 build-cross-tests: mk-data-dir
+	rm $(TESTDIR)/*.$(EXT)
 	for i in $(TESTS); do \
 		cd tests/$$i; \
 		go test -o ../../$(TESTDIR)/$$i.$(EXT) -c -covermode=atomic -coverpkg=../../...; \
@@ -26,14 +27,20 @@ build-cross-tests: mk-data-dir
 	done
 
 run-linux-tests: build-linux-tests
-	cd $(TESTDIR) && for i in ./*.test; do $$i -test.v=true -test.coverprofile=$$i.out; done
+	cd $(TESTDIR) && \
+		for i in ./*.test; do \
+			$$i -test.v=true -test.coverprofile=$$i.out || exit 1; \
+		done
 
 run-windows-tests: build-windows-tests
-	cd $(TESTDIR) && for i in *.exe; do wine $$i -test.v=true -test.coverprofile=$$i.out; done
+	cd $(TESTDIR) && \
+		for i in *.exe; do wine $$i -test.v=true -test.coverprofile=$$i.out || exit 1; done
 
 collect-tests:
 	if [ -f $(TESTDIR)/c.out ]; then rm $(TESTDIR)/c.out; fi
-	for i in $$(find $(TESTDIR) -name '*.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
+	for i in $$(find $(TESTDIR) -name '*.test.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
+	for i in $$(find $(TESTDIR) -name '*.exe.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
+	for i in $$(find $(TESTDIR) -name '*.osx.out'); do tail -n +2 $$i >> $(TESTDIR)/c.out; done
 	echo "mode: atomic" > c.out
 	cat $(TESTDIR)/c.out | sort >> c.out
     sed -i -e '\:^$(PACKAGE)/tests:d' c.out
