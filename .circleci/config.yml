@@ -43,9 +43,8 @@ jobs:
             - .data
 
   test-osx:
-    build:
-      macos:
-        xcode: 11.3.0
+    macos:
+      xcode: 11.3.0
 
     steps:
       - attach_workspace:
