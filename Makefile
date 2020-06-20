@@ -19,7 +19,7 @@ build-linux-tests: mk-data-dir
 	make build-cross-tests EXT=test
 
 build-cross-tests: mk-data-dir
-	rm $(TESTDIR)/*.$(EXT)
+	for i in $$(find $(TESTDIR) -name '*.$(EXT)'); do rm $$i; done
 	for i in $(TESTS); do \
 		cd tests/$$i; \
 		go test -o ../../$(TESTDIR)/$$i.$(EXT) -c -covermode=atomic -coverpkg=../../...; \
