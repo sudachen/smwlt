@@ -1,3 +1,5 @@
+// +build !windows
+
 package test0
 
 import (
