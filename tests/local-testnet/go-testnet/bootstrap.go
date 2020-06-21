@@ -19,13 +19,14 @@ const bootstrapPort = 17513
 const bootstratJsonPort = 19090
 const bootstratGrpcPort = 19190
 const poetPort = 10080
-const poetRpcPort = 50002
-const eventsPort = 50003
+const poetRpcPort = 10082
+const eventsPort = 10083
 const TestNetPath = "./local-testnet/"
 const BinPath = TestNetPath +"bin/"
 
+const genesisCoinbase = "0x0000000000000000000000000000000000000000000000000000000000000001"
+
 var genesisAccounts = []string{
-	/*******/  "0x097598942e44919cf7d11499887a595e41b097acd0a75d65ed8b8c6fa739d297",
 	/*Almog*/  "0x4d05cfede9928bcd225c008db8110cfeb1f01011e118bdb93f1bb14d2052c276",
 	/*Anton*/  "0xdb58184012f26c405bff2d8866bf7ef2d1da7f0b391d1f1364f1d695929df617",
 	/*Tap*/    "0x891da146767aa80e3ce3ef826ef675c1bb32e9021844193a163fac231513149a",
@@ -33,12 +34,11 @@ var genesisAccounts = []string{
 	/*Gavrad*/ "0x0dc90fe42d96e302ae122aa3437e320d792772aba8f459f80e18a45ae754112d",
 }
 
-var nodesCount = len(genesisAccounts)-1
-
 var globalOpts = map[string]interface{} {
-	"--randcon":                      4,
-	"--hare-committee-size":          5,
-	"--hare-max-adversaries":         2,
+	"--acquire-port":				  "false",
+	"--randcon":                      3,
+	"--hare-committee-size":          1,
+	"--hare-max-adversaries":         1,
 	"--hare-round-duration-sec":      10,
 	"--layer-duration-sec":           60,
 	"--layer-average-size":           10,
@@ -48,8 +48,8 @@ var globalOpts = map[string]interface{} {
 	"--eligibility-epoch-offset":     0,
 	"--genesis-active-size":          5,
 	"--genesis-conf":                 TestNetPath +"genesis_accounts.json",
-	"--poet-server":                  fmt.Sprintf("127.0.0.5:%v", poetPort),
-	"--genesis-time": 				  time.Now().Format(time.RFC3339),
+	"--genesis-time": 				  time.Now().Round(time.Second).Format("2006-01-02T15:04:05-07:00"),
+	"--poet-server": 				  fmt.Sprintf("127.0.0.1:%v", poetPort),
 }
 
 func mergeOpts(addopt map[string]interface{}) map[string]interface{} {
@@ -63,12 +63,13 @@ func mergeOpts(addopt map[string]interface{}) map[string]interface{} {
 	return r
 }
 
-func Bootstrap() (term Terminator) {
+func Bootstrap(nodes int, miners int) (term Terminator) {
+	if miners > nodes { miners = nodes }
 
 	_ = os.RemoveAll(TestNetPath +".data")
 	_ = os.MkdirAll(TestNetPath+".data",0777)
 
-	sigterm := make([]chan struct{}, nodesCount+2)
+	sigterm := make([]chan struct{}, nodes+2)
 	for i := range sigterm { sigterm[i] = make(chan struct{}) }
 	defer func() { for _,x := range sigterm { close(x) } }()
 
@@ -80,8 +81,9 @@ func Bootstrap() (term Terminator) {
 		"--tcp-port":     bootstrapPort,
 		"--data-folder":  fmt.Sprintf(TestNetPath+".data/data.%v",0),
 		"--post-datadir": fmt.Sprintf(TestNetPath+".data/post.%v",0),
-		"--coinbase":     genesisAccounts[0],
-		"--events-url": fmt.Sprintf("tcp://127.0.0.1:%v", eventsPort),
+		//"--events-url":   fmt.Sprintf("tcp://127.0.0.1:%v", eventsPort),
+		//"--coinbase":     genesisCoinbase,
+		//"--start-mining": nil,
 	})
 	c, err := exec(BinPath+"go-spacemesh",opts,sigterm[0]) ;
 	if err != nil {
@@ -93,6 +95,7 @@ func Bootstrap() (term Terminator) {
 	for s := range c {
 		m := map[string]interface{}{}
 		if err := json.Unmarshal([]byte(s),&m); err == nil {
+			parse(m, 0, "BOOTSTRAP:")
 			if M, ok := m["M"].(string); ok {
 				const prefix = "Local node identity >> "
 				if strings.HasPrefix(M,prefix) {
@@ -106,9 +109,10 @@ func Bootstrap() (term Terminator) {
 	for s := range c {
 		m := map[string]interface{}{}
 		if err := json.Unmarshal([]byte(s),&m); err == nil {
+			parse(m, 0, "BOOTSTRAP:")
 			if M, ok := m["M"].(string); ok {
 				if M == "App started." {
-					boot(fmt.Sprintf("spacemesh://%v@127.0.0.10:%v",id, bootstrapPort),sigterm[2:])
+					boot(fmt.Sprintf("spacemesh://%v@127.0.0.1:%v",id, bootstrapPort), sigterm[1:], miners)
 					break
 				}
 			}
@@ -121,30 +125,32 @@ func Bootstrap() (term Terminator) {
 	return
 }
 
-func boot(booturl string, sigterm []chan struct{}) {
-
-	poet(sigterm[1])
-
-	for i, t := range sigterm {
-		node(i+1,booturl,t)
+func boot(booturl string, sigterm []chan struct{}, miners int) {
+	poet(sigterm[0])
+	for i, t := range sigterm[1:] {
+		node(i+1,booturl,t,i<miners)
 	}
-
+	for ( len(p2pid) < len(sigterm)-1 ) {
+		time.Sleep(time.Second)
+	}
 }
 
-func node(no int, booturl string, sigterm chan struct{}) {
+func node(no int, booturl string, sigterm chan struct{}, miner bool) {
 	opts := mergeOpts(map[string]interface{}{
 		"--json-server":  nil,
 		"--json-port":    bootstratJsonPort +no,
 		"--grpc-server":  nil,
 		"--grpc-port":    bootstratGrpcPort +no,
 		"--tcp-port":     bootstrapPort +no,
-		"--start-mining": nil,
 		"--bootstrap":    nil,
 		"--bootnodes":    booturl+fmt.Sprintf("?disc=%v", bootstrapPort),
 		"--data-folder":  fmt.Sprintf(TestNetPath+".data/data.%v",no),
 		"--post-datadir": fmt.Sprintf(TestNetPath+".data/post.%v",no),
-		"--coinbase":     genesisAccounts[no],
 	})
+	if miner {
+		opts["--start-mining"] = nil
+		opts["--coinbase"] = genesisAccounts[no%len(genesisAccounts)]
+	}
 	c, err := exec(BinPath+"go-spacemesh",opts,sigterm) ;
 	if err != nil {
 		panic(err)
@@ -161,7 +167,8 @@ func poet(sigterm chan struct{}) {
 		"--duration":"10s",
 		"--gateway":fmt.Sprintf("127.0.0.1:%v", bootstratGrpcPort),
 		"--poetdir":fmt.Sprintf(TestNetPath+".data/%v","poet"),
-		"--reset": nil,
+		"--empty":nil,
+		"--disablebroadcast":nil,
 	}
 	c, err := exec(BinPath+"poet",opts,sigterm) ;
 	if err != nil {
@@ -169,24 +176,4 @@ func poet(sigterm chan struct{}) {
 	}
 	go collect_poet(c)
 	return
-}
-
-func collect(c chan string,n int) {
-	for s := range c {
-		m := map[string]interface{}{}
-		if err := json.Unmarshal([]byte(s),&m); err == nil {
-			if M, ok := m["M"].(string); ok {
-				if M == "PoST initialization completed" {
-					fmt.Printf("PoST initialization completed for node %v\n",n)
-					break
-				}
-			}
-		}
-	}
-}
-
-func collect_poet(c chan string) {
-	for _ = range c {
-		//
-	}
 }

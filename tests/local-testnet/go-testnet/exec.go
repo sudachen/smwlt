@@ -12,10 +12,10 @@ import (
 func stringify(opts map[string]interface{}) []string {
 	a := []string{}
 	for k,v := range opts {
-		a = append(a,k)
 		if v != nil {
-			a = append(a,fmt.Sprint(v))
+			k = k + "=" + fmt.Sprint(v)
 		}
+		a = append(a,k)
 	}
 	return a
 }
