@@ -7,13 +7,13 @@ import (
 
 func Test_MainOnly1(t *testing.T) {
 	testCLI(t, func(t *testing.T, pty *expect.Pty) {
-		pty.Host.ExpectRxOrPanic(`Spacemesh CLI Wallet`)
+		pty.Host.Expect(`Spacemesh CLI Wallet`)
 	}, "-h")
 }
 
 func Test_MainOnly2(t *testing.T) {
 	failCLI(t, func(t *testing.T, pty *expect.Pty) {
-		pty.Host.ExpectRxOrPanic(`XXX Spacemesh CLI Wallet`)
+		pty.Host.Expect(`XXX Spacemesh CLI Wallet`)
 	}, "-h")
 }
 
