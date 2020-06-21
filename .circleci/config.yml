@@ -62,7 +62,11 @@ jobs:
       - attach_workspace:
           at: ./ws
       - run: ln -s ./ws/.data .
+<<<<<<< HEAD
       #- run: apk add curl make
+=======
+      - run: apk add curl make
+>>>>>>> 94cf9d59b5c44b1aebc802a418dc1a932e49cceb
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
              chmod +x ./cc-test-reporter
       - run: make collect-tests
