@@ -52,7 +52,7 @@ jobs:
 
   test-cover:
     docker:
-      - image: sudachen/linux
+      - image: sudachen/linux-ci
 
     environment:
       CC_TEST_REPORTER_ID: 6faa816b8783373b065bcab1cee0278dfd9f5de083e2eb36bb7d2f13e2fc0098
@@ -62,11 +62,8 @@ jobs:
       - attach_workspace:
           at: ./ws
       - run: ln -s ./ws/.data .
-      #- run: apk add curl make
-      - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
-             chmod +x ./cc-test-reporter
       - run: make collect-tests
-      - run: ./cc-test-reporter after-build -t gocov -d
+      - run: /usr/local/bin/cc-test-reporter after-build -t gocov -d
       - run: make check-fail
 
 workflows:
