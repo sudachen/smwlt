@@ -6,6 +6,7 @@ import (
 	"github.com/sudachen/smwlt/fu/errstr"
 	"os"
 	exec2 "os/exec"
+	"sort"
 	"syscall"
 )
 
@@ -17,6 +18,7 @@ func stringify(opts map[string]interface{}) []string {
 		}
 		a = append(a,k)
 	}
+	sort.Strings(a)
 	return a
 }
 
