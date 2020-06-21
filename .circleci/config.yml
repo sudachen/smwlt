@@ -63,7 +63,7 @@ jobs:
           at: ./ws
       - run: ln -s ./ws/.data .
       - run: make collect-tests
-      - run: /usr/local/bin/cc-test-reporter after-build -t gocov -d
+      - run: /usr/local/bin/cc-test-reporter after-build -t gocov
       - run: make check-fail
 
 workflows:
