@@ -1,3 +1,9 @@
+[![CircleCI](https://circleci.com/gh/sudachen/smwlt.svg?style=svg)](https://circleci.com/gh/sudachen/smwlt)
+[![Maintainability](https://api.codeclimate.com/v1/badges/45a94df6ce0f10650766/maintainability)](https://codeclimate.com/github/sudachen/smwlt/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/45a94df6ce0f10650766/test_coverage)](https://codeclimate.com/github/sudachen/smwlt/test_coverage)
+[![Go Report Card](https://goreportcard.com/badge/github.com/sudachen/smwlt)](https://goreportcard.com/report/github.com/sudachen/smwlt)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 ```
 
 Usage:
