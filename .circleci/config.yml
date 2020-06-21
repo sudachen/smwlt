@@ -66,7 +66,7 @@ jobs:
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter &
              chmod +x ./cc-test-reporter
       - run: make collect-tests
-      - run: ./cc-test-reporter after-build -t gocov
+      - run: ./cc-test-reporter after-build -t gocov -d
       - run: make check-fail
 
 workflows:
